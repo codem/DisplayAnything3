@@ -1,0 +1,6 @@
+/**
+ * Silverstripe 3.0a CMS improvements
+ */
+.cms #Root .ui-tabs .ui-tabs-nav li a {
+	padding : 6px 15px;
+}
