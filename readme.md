@@ -1,44 +1,15 @@
-# DisplayAnything #
-
-DisplayAnything is both a file and image gallery module for the SilverStripe CMS. By default, it's shipped as an image gallery module.
-It can replace the standard ImageGallery module, migrate images from it and it's designed to get you up and running with minimum or no configuration and esoteric error messages.
-
-DisplayAnything implements the client-side features provided by File Uploader (https://github.com/valums/file-uploader), a third party Javascript library.
-
-The base level class is called UploadAnything which provides the upload functionality.
-
-## Features ##
-+ Handles file uploads via XHR or standard uploads.
-+ Security: uses a configurable mimetype map, not file extensions, to determine an uploaded file type
-+ Integration: uses PHP system settings for upload file size
-+ Multiple file uploading in supported browsers (Note: Internet Explorer < 9 does not support multiple file uploads)
-+ Drag and Drop in supported browsers (Chrome, Firefox, Safari and possibly Opera)
-+ XHR file uploading
-+ Has Zero Dependencies on the third-party Silverstripe modules ImageGallery, DataObjectManager and Uploadify
-+ 100% Flash Free - no plugin crashes, HTTP errors, I/O errors or other futzing with incomprehensible Flash errors!
-+ Import ImageGallery album items to a gallery!
-+ Uses jQuery bundled with SilverStripe
-+ Well documented & clean code with extendable classes and overrideable methods
-+ $_REQUEST not used
-+ Uses Valum's File Uploader (hat tip)
-+ Drag and drop sorting of images & files in the gallery
-+ File upload progress with cancel option
+# DisplayAnything 3.0a #
 
 ## State ##
-+ Currently considered beta although we're eating our own dogfood and are happy with general stability - i.e test in a development setting, be aware it's in Beta and deploy if you are happy with the module.
+Note: this is a highly experimental fork of <a href="http://github.com/codem/displayanything">DisplayAnything</a> based on SilverStripe 3.0a2. Don't expect it to work at all. It may eat your images or worse.
+If you would like to contribute to the development of this module, please fork it and hack away. If you would like to use a spiffy multi-file uploader and gallery module in SilverStripe 2.4.x, please look at <a href="http://github.com/codem/displayanything">DisplayAnything</a>.
 
-## TODO ##
-+ Client side reminder of file size (per Valums file uploader spec)
-+ Testing of uploads in IE8+
-
-## Why? ##
-DisplayAnything was developed after implementing the ImageGallery module on a large, complex SilverStripe site which resulted in valuable time spent debugging DataObjectManager code and head-scratching Uploadify errors. Codem developed DisplayAnything to be a functional CMS replacement for the SilverStripe ImageGallery module.
-
-## MimeTypes ##
-DisplayAnything comes preconfigured to accept image uploads (GIF, PNG, JPG). When used as a gallery, a usage tab is made available where you can add and edit the current gallery usage.
+The <a href="https://github.com/codem/DisplayAnything/blob/master/readme.md">entire readme for DisplayAnything</a> applies to this version.
+Additionally, to assist with version identification this module will be versioned the same as the pre-release version of SS3.0 it has been tested against.
 
 ## Installing ##
 <ol>
+<li>Download and <a href="http://www.silverstripe.org/silverstripe-3-0-alpha-2-is-here/">install SilverStripe 3.0a2</a></li>
 <li>cd /path/to/your/silverstripe/site</li>
 <li>Grab the source:
 	<dl>
@@ -56,23 +27,25 @@ DisplayAnything comes preconfigured to accept image uploads (GIF, PNG, JPG). Whe
 <li>log into the CMS and start editing</li>
 </ol>
 
-## Migrating items from the ImageGallery gallery module ##
-If DisplayAnything detects an  ImageGallery Album associated with the current page it will provide an Image Gallery Migration tab containing migration options. Migrated mages are copied rather than moved.
-You can choose a albums from the list of album(s) provided and save the page, successfully imported items will appear in the file list. You can retry the migration at any time.
-
-Once migration is complete you can remove the Image Gallery module as and when you wish.
-
 ## CMS ##
-You can implement a DisplayAnything gallery using the normal getCmsFields() syntax on a Page type:
+Here is a sample gallery page:
 
 ```php
-class MyPage extends Page {
-	
+<?php
+class GalleryPage extends Page {
+
 	public static $has_one = array(
-		'SomeFile' => 'UploadAnythingFile',
-		'SomeGallery' => 'DisplayAnythingGallery',
-		'SomeVideoGallery' => 'DisplayAnythingYouTubeGallery',
+		'ImageGallery' => 'DisplayAnythingGallery',
 	);
+	
+	public function PublicImageGallery() {
+		$gallery = $this->ImageGallery();
+		if($gallery->Visible == 1) {
+			return $gallery;
+		}
+		return FALSE;
+	}
+	
 	
 	public function getCmsFields() {
 		$fields = parent::getCmsFields();
@@ -80,71 +53,31 @@ class MyPage extends Page {
 		//GALLERY per page
 		$gallery = new DisplayAnythingGalleryField(
 			$this,
-			'SomeGallery',
+			'ImageGallery',
 			'DisplayAnythingGallery'
 		);
-		$gallery->SetTargetLocation('/some/path/to/a/gallery');//relative to ASSETS_PATH
-		$fields->addFieldsToTab('Root.Content.Gallery', array($gallery));
-		
-		
-		//SINGLE field - with a test to see if the page has been saved
-		//NOTE: that single field uploads can be done with the core Silverstripe FileField (and is probably more stable at this point)
-		if(!empty($this->ID)) {
-			$uploader = new UploadAnythingField($this, 'SomeFile','File');
-			$uploader->SetMimeTypes(array('text/plain'));//this single file uploader only allows plain text uploads
-		} else {
-			$uploader = new LiteralField("PageNotSavedYet", "<p>The file may be uploaded after saving this page.</p>");
-		}
-		$fields->addFieldsToTab('Root.Content.Image', array($uploader));
-		
-		//YOUTUBE VIDEO gallery - a simple extension to the default gallery
-		$gallery = new DisplayAnythingGalleryField(
-			$this,
-			'SomeVideoGallery',
-			'DisplayAnythingYouTubeGallery'
-		);
-		$gallery->SetTargetLocation('videogallery');
-		$fields->addFieldToTab('Root.Content.Videos', $gallery);
+		$gallery->SetTargetLocation('galleryfiles');
+		$fields->addFieldToTab('Root.Gallery', $gallery);
 		
 		return $fields;
 	}
 }
-```
-## Frontend Templates ##
-Innumerable gallery plugins with varying licenses exist for image & file lists and viewing of images in a lightbox (Fancybox is good and open source).
-DisplayAnything avoids being a kitchen sink, stays light and does not bundle any of these plugins. It's up to you to implement the gallery the way you want it (this saves you having to undo & override any defaults DisplayAnything may set).
-Here's an example Page control you may like to use as a starting point:
 
-```php
-<% if SomeImageGallery %>
-	<% control SomeImageGallery %>
-		<div id="ImageGallery">
-			<h4>$Title</h4>
-			<div class="inner">
-				<% if GalleryItems %>
-					<div id="GalleryItems">
-							<ul id="GalleryList">
-								<% control GalleryItems %>
-									<li class="$EvenOdd $FirstLast"><a href="$URL" rel="page-gallery">$CroppedImage(90,90)</a></li>
-								<% end_control %>
-							</ul>
-					</div>
-				<% end_if %>
-				<% include Clearer %>
-			</div>
-		</div>
-	<% end_control %>
-<% end_if  %>
+
+class GalleryPage_Controller extends Page_Controller {}
+?>
 ```
 
 ## Support ##
-+ Twitter : <a href="http://twitter.com/_codem">@_codem</a>
-+ Github <a href="https://github.com/codem/DisplayAnything/issues">Issues list please for bug reports & feature requests</a>
-+ Need extra help? <a href="http://codem.com.au">Codem can provide commercial support for this and other Silverstripe projects</a>
++ No support is available for this version of DisplayAnything. The intended audience is developers who want to hack away and get it working alongside SS3 releases.
 
-## Common Problems ##
-+ Javascript not running - ensure the source code is located in a directory called 'display_anything'
-+ Internet Explorer bugs - probably, although it should work in IE9. We don't support 7 or lower and intensive testing in 8+ has not been completed. You are welcome to try it out in IE8+ and report issues.
+## Known issues ##
++ Quite a few Javascript errors, check your console for more
++ AJAX requests commonly result in 500 errors e.g  500 (Warning: "get_class() expects parameter 1 to be object, boolean given" at line 270 of /path/to/sapphire/forms/TableListField.php)
++ Possible SS3 compatibility errors
+
+## Hacking ##
++ Two CSS files have been created - "ss_cms_improvements.css" and "ss3_compat.css". The former is suggested improvements to the SS3 UI (pretty sparse) the latter contains specific SS3 compatiblity styles for the module.
 
 ## Licenses ##
 DisplayAnything is licensed under the Modified BSD License (refer license.txt)
