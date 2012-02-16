@@ -182,34 +182,11 @@ UploadAnything.prototype = {
 	}
 };
 
-Behaviour.register({
-	'#Form_EditForm' : {
-		initialize : function() {
-			this.observeMethod('PageLoaded', this.pageLoaded);
-			this.observeMethod('BeforeSave', this.beforeSave);
-			this.pageLoaded(); // call pageload initially too.
-		},
-		
-		pageLoaded : function() {
-			var u = new UploadAnything();
-			u.init();
-			u.queue_all();
-			u.viewer();
-		},
-		
-		beforeSave: function() {
-		}
-	} // #Form_EditForm
-});
-
-if(jQuery('#Form_EditForm').length == 0) {
-	//handle when loaded within greybox lightbox
-	jQuery(document).ready(
-		function() {
-			var u = new UploadAnything();
-			u.init();
-			u.queue_all();
-			u.viewer();
-		}
-	);
-}
+jQuery(document).ready(
+	function() {
+		var u = new UploadAnything();
+		u.init();
+		u.queue_all();
+		u.viewer();
+	}
+);
