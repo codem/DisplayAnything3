@@ -6,8 +6,8 @@
 /* - UPLOADER - */
 
 .file-uploader {
-	background-color : #E9E9E9;
-	padding : 6px;
+	background-color : transparent;
+	padding : 0;
 }
 
 .file-uploader ul li {
@@ -15,21 +15,22 @@
 	list-style-type : disc;
 }
 
-.right form .file-uploader .field .middleColumn,
 form .file-uploader .field .middleColumn {
 	width : auto;
-	background-color : #fff;
 	padding : 5px;
+	margin : 0;
 }
 
 form #dummy_field {
 	display : none;
 }
 
+form .file-uploader .field .left {
+	float : none;
+	width : auto;
+}
+
 form .file-uploader .field .middleColumn .help {
-	background-color : #e9e9e9;
-	color : #666;
-	width : 100%;
 	padding : 0;
 	clear : both;
 }
@@ -86,24 +87,25 @@ form .file-uploader .field .middleColumn .help li strong {
 	text-align: center;
 	cursor: default;
 	color: #eee;
-	padding: 12px;
-	border: 3px dashed #666;
+	padding: 16px;
+	border: 1px dashed #002945;
 	background-color: #fff;
 	color : #333;
 	text-transform : uppercase;
 	font-variant : small-caps;
 	font-weight : bold;
+	box-shadow: 0px 0px 11px 0px rgba(36,36,90,0.2);
 }
 
 .file-uploader .qq-upload-button-hover {
-	background-color : #E9E9E9;
+	border : 1px solid #E02D2A;
 }
 
 .file-uploader .uploadanything-upload-box {
-	padding : 0;
 	width : 100%;
-	background-color : #eee;
 	float : none;
+	margin : 0 0 8px 0;
+	padding : 0 0 7px 0;
 }
 
 .file-uploader .qq-upload-drop-area {
@@ -147,9 +149,8 @@ form .file-uploader .field .middleColumn .help li strong {
 }
 
 .file-uploader-list {
-	background-color : #fff;
 	margin : 1px 0;
-	padding : 3px 0px;
+	padding : 3px 0px 7px 0;
 }
 
 .file-uploader-list .file-uploader-item {
@@ -185,10 +186,6 @@ form .file-uploader .field .middleColumn .help li strong {
 .display_anything h5 {
 	background-color : #e9e9e9;
 	padding : 6px;
-}
-
-.right form .display_anything .field .middleColumn {
-	background : transparent;
 }
 
 .display_anything_migrate ul {

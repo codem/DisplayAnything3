@@ -367,6 +367,8 @@ class UploadAnythingField extends ComplexTableField {
 	 */
 	public static function LoadCSS() {
 		Requirements::css("display_anything/css/display.css");
+		Requirements::css("display_anything/css/ss_cms_improvements.css");
+		Requirements::css("display_anything/css/ss3_compat.css");
 		Requirements::css("display_anything/javascript/file-uploader/client/fileuploader.css");
 	}
 
@@ -443,7 +445,7 @@ class UploadAnythingField extends ComplexTableField {
 		if(empty($list)) {
 			$list = "<div class=\"file-uploader-item\"><p>No files have been associated yet...</p></div>";
 		}
-		$html = "<div class=\"file-uploader-list\">{$list}</div>";
+		$html = "<div class=\"file-uploader-list field\">{$list}</div>";
 		if($this->show_help) {
 			$html .= "<div class=\"help\"><div class=\"inner\">"
 					. " <h4>Upload help</h4><ul>"
@@ -570,7 +572,7 @@ class UploadAnythingField extends ComplexTableField {
 					break;
 				case "gallery":
 					//the related dataobject has many files
-					$info = $this->GetComponentInfo();
+					$info = $this->GetComponentInfo();//SS3
 					$files = array();
 					if(isset($info['childClass'])) {
 						//$files = $this->controller->{$this->name}()->{$this->itemsClass}();
@@ -578,7 +580,7 @@ class UploadAnythingField extends ComplexTableField {
 						$files = DataObject::get(
 							$info['childClass'],
 							$where,
-							'`File`.`Sort` ASC, `File`.`Created` DESC'
+							"\"File\".\"Sort\" ASC, \"File\".\"Created\" DESC"
 						);	
 					} else {
 						//fallback ?
@@ -610,7 +612,7 @@ class UploadAnythingField extends ComplexTableField {
 			$html .= "<p>No 'id' attribute was specified for the file upload field. File uploads cannot take place until you or your developer provides this information to UploadAnything</p>";
 		} else {
 			//set up the upload
-			$html .= "<div class=\"uploadanything-upload-box\"  id=\"{$id}\" rel=\"{$this->GetUploaderConfiguration()}\">Loading uploader...</div>";
+			$html .= "<div class=\"uploadanything-upload-box field\"  id=\"{$id}\" rel=\"{$this->GetUploaderConfiguration()}\">Loading uploader...</div>";
 		}
 		return $html;
 	}
@@ -626,12 +628,12 @@ class UploadAnythingField extends ComplexTableField {
  		$reload = $this->Link('ReloadList');
  		$resort = $this->Link('SortItem');
  		
-		$Title = $this->XML_val('Title');
+		$Title = $this->Title;//SS3 - sourceClass error
 		$Message = $this->XML_val('Message');
 		$MessageType = $this->XML_val('MessageType');
 		$RightTitle = $this->XML_val('RightTitle');
 		$Type = $this->XML_val('Type');
-		$extraClass = $this->XML_val('extraClass');
+		$extraClass = $this->extraClass;//SS3 - sourceClass error
 		$Name = $this->XML_val('Name');
 		$Field = $this->XML_val('Field');
 		
@@ -798,7 +800,7 @@ HTML;
 					case "gallery":
 						//add this file to the relation component
 						//the type of file that is the relation
-						$info = $this->GetComponentInfo();
+						$info = $this->GetComponentInfo();//SS3
 						if(!$info || !isset($info['childClass'])) {
 							throw new Exception("Error: {invalid component info detected. This generally means the gallery association with the page is not correct.");
 						}
@@ -850,7 +852,20 @@ HTML;
 	 */
 	final private function GetComponentInfo() {
 		try {
+			//this will trigger an exception in SS3.0
 			return $this->controller->{$this->name}()->{$this->itemsClass}()->getComponentInfo();
+		} catch (Exception $e) {}
+		
+		
+		//compatiblity with SS2.4.x
+		try {
+			$list = $this->controller->{$this->name}()->{$this->itemsClass}();
+			$info = array(
+				'joinField' => $list->__get('foreignKey'),
+				'joinID' => $list->__get('foreignID'),
+				'childClass' => $list->__get('dataClass'),
+			);
+			return $info;
 		} catch (Exception $e) {
 			return FALSE;
 		}
@@ -877,7 +892,7 @@ HTML;
 				if(!empty($item['id'])) {
 					$sort = (isset($item['pos']) ? (int)$item['pos'] : 0);
 					//run a quick query and bypass the ORM
-					$query = "UPDATE `File` SET Sort = '" . Convert::raw2sql($sort) . "' WHERE ID = '" . Convert::raw2sql($item['id']) . "'";
+					$query = "UPDATE \"File\" SET Sort = '" . Convert::raw2sql($sort) . "' WHERE ID = '" . Convert::raw2sql($item['id']) . "'";
 					$result = DB::query($query);
 					if($result) {
 						$success++;
