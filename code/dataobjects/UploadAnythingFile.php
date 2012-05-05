@@ -128,11 +128,11 @@ class UploadAnythingFile extends File {
 	
 	/**
 	 * CreateImage()
-	 * @note based on config we'll return a watermarked image or a normal image
-	 * @param $data array
+	 * @param $watermark TRUE to return a watermarked image
+	 * @param $data array of seed data for the image
 	 */
-	public function CreateImage($data) {
-		if(!empty(self::$configuration['watermark'])) {
+	public function CreateImage($data, $watermark = FALSE) {
+		if($watermark) {
 			return new WatermarkedImage($data);
 		} else {
 			return new Image($data);
@@ -158,15 +158,14 @@ class UploadAnythingFile extends File {
 	/**
 	 * Thumbnail()
 	 * @note helper method to thumb an image to a certain width or height
-	 * @param $width_height string WIDTHxHEIGHT
+	 * @param $width_height string WIDTHxHEIGHT e.g 400x300 or a WIDTH e.g 400 -- In templates only two arguments are allowed by SS if you call $Thumbnail
 	 * @param $method one of the image thumbing methods supported
 	 */
-	public function Thumbnail($method, $width_height, $height = "") {
-	
-		if($height != "" && is_int($width_height)) {
+	public function Thumbnail($method, $width_height, $height = 0) {
+		if(is_numeric($width_height)) {
 			//called from script
 			$width = $width_height;
-		} else if(!is_int($width_height) && strpos( $width_height, "x") !== FALSE) {
+		} else if(strpos( $width_height, "x") !== FALSE) {
 			//called from template
 			$parts = explode("x", $width_height);
 			$width = $height = 0;
@@ -202,7 +201,7 @@ class UploadAnythingFile extends File {
 		return "";
 	}
 	
-	public function PaddedImage($width, $height) {
+	public function PaddedImage($width, $height, $watermark = FALSE) {
 		$is_image = $this->IsImage();
 		if($is_image) {
 			$image = $this->CreateImage(array(
@@ -211,14 +210,14 @@ class UploadAnythingFile extends File {
 				'Name' => $this->Name,
 				'ClassName' => 'Image',
 				'Title' => $this->Title,
-			));
+			), $watermark);
 			$resize = $image->PaddedImage($width, $height);
 			return $resize->getTag();
 		}
 		return FALSE;
 	}
 	
-	public function SetWidth($width) {
+	public function SetWidth($width, $watermark = FALSE) {
 		$is_image = $this->IsImage();
 		if($is_image) {
 			$meta = $this->GetMeta();
@@ -231,14 +230,14 @@ class UploadAnythingFile extends File {
 				'Name' => $this->Name,
 				'ClassName' => 'Image',
 				'Title' => $this->Title,
-			));
+			), $watermark);
 			$resize = $image->SetWidth($width);
 			return $resize->getTag();
 		}
 		return FALSE;
 	}
 	
-	public function SetHeight($height) {
+	public function SetHeight($height, $watermark = FALSE) {
 		$is_image = $this->IsImage();
 		if($is_image) {
 			$meta = $this->GetMeta();
@@ -251,14 +250,14 @@ class UploadAnythingFile extends File {
 				'Name' => $this->Name,
 				'ClassName' => 'Image',
 				'Title' => $this->Title,
-			));
+			), $watermark);
 			$resize = $image->SetHeight($height);
 			return $resize->getTag();
 		}
 		return FALSE;
 	}
 	
-	public function CroppedImage($width, $height) {
+	public function CroppedImage($width, $height, $watermark = FALSE) {
 		$is_image = $this->IsImage();
 		if($is_image) {
 			$image = $this->CreateImage(array(
@@ -267,11 +266,24 @@ class UploadAnythingFile extends File {
 				'Name' => $this->Name,
 				'ClassName' => 'Image',
 				'Title' => $this->Title,
-			));
+			), $watermark);
 			$resize = $image->CroppedImage($width, $height);
 			return $resize->getTag();
 		}
 		return FALSE;
+	}
+	
+	public function WatermarkCroppedImage($width, $height) {
+		return $this->CroppedImage($width, $height, TRUE);
+	}
+	public function WatermarkPaddedImage($width, $height) {
+		return $this->PaddedImage($width, $height, TRUE);
+	}
+	public function WatermarkSetHeight($height) {
+		return $this->SetHeight($height, TRUE);
+	}
+	public function WatermarkSetWidth($width) {
+		return $this->SetWidth($width, TRUE);
 	}
 	
 	// -- END IMAGE THUMBING
@@ -341,17 +353,10 @@ class UploadAnythingFile extends File {
 		$fields->addFieldsToTab(
 			'Root.FileInformation',
 			array(
+				new LiteralField('FilePathField', "<p class=\"message\">Editing {$this->Name} - {$this->Filename}</p>"),
 				new TextField('Title', 'Title of File', $this->Title),
-				new TextField('CallToActionText', 'Call To Action Text (placed on button or link selected)', $this->CallToActionText),
-				new TreeDropdownField(
-						"InternalLinkID",
-						"Internal page link",
-						"SiteTree"
-				),
-				new TextField('ExternalURL', 'External link (e.g http://example.com/landing/page) - will override Internal Page Link', $this->ExternalURL),
 				new TextField('Caption', 'File Caption', $this->Caption),
 				new TextareaField('Description', 'File Description', 5, NULL, $this->Description),
-				new ImageField('AlternateImage', 'Alternate Image (optional)'),
 			)
 		);
 		
@@ -396,9 +401,29 @@ HTML
 		);
 		
 		$fields->addFieldsToTab(
+			'Root.Linking',
+			array(
+				new TreeDropdownField(
+						"InternalLinkID",
+						"Internal page link",
+						"SiteTree"
+				),
+				new TextField('ExternalURL', 'External link (e.g http://example.com/landing/page) - will override Internal Page Link', $this->ExternalURL),
+				new TextField('CallToActionText', 'Call To Action Text (placed on button or link selected)', $this->CallToActionText),
+			)
+		);
+		
+		$fields->addFieldsToTab(
+			'Root.TemplateOptions',
+			array(
+				new ImageField('AlternateImage', 'Alternate Image (optional)'),
+			)
+		);
+		
+		$fields->addFieldsToTab(
 			'Root.Ownership',
 			array(
-				new DropDownField('OwnerID','File Owner', DataObject::get('Member')->map('ID','Name'), $this->OwnerID)
+				new DropDownField('OwnerID','Who owns this file?', DataObject::get('Member')->map('ID','Name'), $this->OwnerID)
 			)
 		);
 		
