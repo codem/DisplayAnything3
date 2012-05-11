@@ -6,7 +6,7 @@ A file and image gallery module for Silverstripe 3.0b2, forked from <a href="htt
 This module is only compatible with <a href="http://www.silverstripe.org/silverstripe-3-beta-2/">the Silverstripe 3.0b2 release</a>.
 
 ## State ##
-This is a <strike>highly</highly> moderately experimental fork of <a href="http://github.com/codem/displayanything">DisplayAnything</a> based on SilverStripe 3.0b2.
+This is a ~~highly~~ moderately experimental fork of <a href="http://github.com/codem/displayanything">DisplayAnything</a> based on SilverStripe 3.0b2.
 
 Don't expect it to work consistently in a production environment. It may eat your files or worse. Backup your files if you are testing.
 
