@@ -12,8 +12,7 @@ Don't expect it to work consistently in a production environment. It may eat you
 
 If you would like to contribute to the development of this module, please fork it and hack away. If you would like to use a spiffy multi-file uploader and gallery module in SilverStripe 2.4.x, please look at <a href="http://github.com/codem/displayanything">DisplayAnything</a>.
 
-The <a href="https://github.com/codem/DisplayAnything/blob/master/readme.md">entire readme for DisplayAnything</a> applies to this version.
-Additionally, to assist with version identification this module will be versioned the same as the pre-release version of SS3.0 it has been tested against.
+To assist with version identification this module will be versioned the same as the pre-release version of SS3.0 it has been tested against.
 
 ## Changes ##
 <ul>
@@ -46,11 +45,11 @@ Additionally, to assist with version identification this module will be versione
 <li>Grab the source:
 	<dl>
 		<dt>Git</dt>
-		<dd><code>git clone git@github.com:codem/DisplayAnything.git display_anything</code></dd>
+		<dd><code>git clone git@github.com:codem/DisplayAnything3.git display_anything</code></dd>
 		<dt>Bzr (requires bzr-git) - note the / in the path</dt>
-		<dd><code>bzr branch git://git@github.com/codem/DisplayAnything.git display_anything</code></dd>
+		<dd><code>bzr branch git://git@github.com/codem/DisplayAnything3.git display_anything</code></dd>
 		<dt>Download</dt>
-		<dd><code>wget --output-document=display_anything.zip https://github.com/codem/DisplayAnything/zipball/master</code></dd>
+		<dd><code>wget --output-document=display_anything.zip https://github.com/codem/DisplayAnything3/zipball/master</code></dd>
 	</dl>
 	<br />In all cases the module source code should be located in a directory called 'display_anything'
 </li>
@@ -69,14 +68,14 @@ You can choose a albums from the list of album(s) provided and save the page, su
 Once migration is complete you can remove the Image Gallery module as and when you wish.
 
 ## CMS implementation ##
-View the <a href="./examples">example directory</a> for some sample page, dataobject and template implementations.
+View the <a href="./DisplayAnything3/examples">example directory</a> for some sample page, dataobject and template implementations.
 
 ## Templates ##
 Innumerable gallery plugins with varying licenses exist for image & file lists and viewing of images in a lightbox (Fancybox is good and open source).
 
 By design, DisplayAnything avoids being a kitchen sink, stays light and does not bundle any of these plugins. It's up to you to implement the gallery the way you want it (this saves you having to undo & override any defaults DisplayAnything may set).
 
-View the <a href="./examples/templates">example directory</a> for some sample layouts related to the pages in the examples section.
+View the <a href="./DisplayAnything3/examples/templates">example directory</a> for some sample layouts related to the pages in the examples section.
 
 ### Ordered Gallery Items ###
 You can implement ordered galleries in your frontend template to match yours or someone else's drag and drop admin work on the Gallery. Simply change "GalleryItems" to "OrderedGalleryItems" in the template example above.
