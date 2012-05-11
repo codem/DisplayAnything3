@@ -1,3 +1,3 @@
 <?php
-Object::add_extension('Image', 'WatermarkedImageDecorator');
+Object::add_extension('Image', 'WatermarkedImageExtension');
 ?>

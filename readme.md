@@ -1,15 +1,47 @@
-# DisplayAnything 3.0a #
+# DisplayAnything 3.0b2 AKA 'nearly there' #
+
+## About ##
+A file and image gallery module for Silverstripe 3.0b2, forked from <a href="http://github.com/codem/displayanything">DisplayAnything</a>.
+
+This module is only compatible with <a href="http://www.silverstripe.org/silverstripe-3-beta-2/">the Silverstripe 3.0b2 release</a>.
 
 ## State ##
-Note: this is a highly experimental fork of <a href="http://github.com/codem/displayanything">DisplayAnything</a> based on SilverStripe 3.0a2. Don't expect it to work at all. It may eat your images or worse.
+This is a highly experimental fork of <a href="http://github.com/codem/displayanything">DisplayAnything</a> based on SilverStripe 3.0b2.
+
+Don't expect it to work consistently in a production environment. It may eat your files or worse. Backup your files if you are testing.
+
 If you would like to contribute to the development of this module, please fork it and hack away. If you would like to use a spiffy multi-file uploader and gallery module in SilverStripe 2.4.x, please look at <a href="http://github.com/codem/displayanything">DisplayAnything</a>.
 
 The <a href="https://github.com/codem/DisplayAnything/blob/master/readme.md">entire readme for DisplayAnything</a> applies to this version.
 Additionally, to assist with version identification this module will be versioned the same as the pre-release version of SS3.0 it has been tested against.
 
+## Changes ##
+<ul>
+<li>The field now extends GridField rather than ComplexTableField</li>
+<li>Updated JS upload handling to bind on new CMS events</li>
+<li>Worked through deprecation notices to get compatibility with method changes between 3.0a2 and 3.0b2</li>
+<li>Remove 2.4 JS handlers such as lightbox loading</li>
+<li>Update drop zone styles to match UploadField</li>
+<li>General CSS updates</li>
+<li>Deprecate getComponentInfo() compat layer and remove calls to it</li>
+<li>Update example page content</li>
+<li>Layout updates in FieldHolder</li>
+<li>CleanFileName() now hits up FileNameFilter</li>
+<li>Change WatermarkedImageDecorator to WatermarkedImageExtension and use DataExtension</li>
+<li>Change behaviour of OrderedGalleryItems for use as default DataList</li>
+</ul>
+
+## TODO / Known issues ###
+<ul>
+<li>File edit link currently hits up the asset admin, we'd rather this went to a specific view to remain in gallery context (fork and hack if you want to help with this. Hint:FileEditorLink())</li>
+<li>Drop support for single file UploadAnythingField, this will become an abstract class, use UploadField instead</li>
+<li>General testing as required</li>
+</ul>
+
+
 ## Installing ##
 <ol>
-<li>Download and <a href="http://www.silverstripe.org/silverstripe-3-0-alpha-2-is-here/">install SilverStripe 3.0a2</a></li>
+<li>Download and <a href="http://www.silverstripe.org/silverstripe-3-0-alpha-2-is-here/">install SilverStripe 3.0b2</a></li>
 <li>cd /path/to/your/silverstripe/site</li>
 <li>Grab the source:
 	<dl>
@@ -27,57 +59,57 @@ Additionally, to assist with version identification this module will be versione
 <li>log into the CMS and start editing</li>
 </ol>
 
-## CMS ##
-Here is a sample gallery page:
+## Migrating items from the ImageGallery gallery module ##
+
+Note: this functionality is experimental in this version of the module.
+
+If DisplayAnything detects an  ImageGallery Album associated with the current page it will provide an Image Gallery Migration tab containing migration options. Migrated images are copied rather than moved.
+You can choose a albums from the list of album(s) provided and save the page, successfully imported items will appear in the file list. You can retry the migration at any time.
+
+Once migration is complete you can remove the Image Gallery module as and when you wish.
+
+## CMS implementation ##
+View the <a href="./examples">example directory</a> for some sample page, dataobject and template implementations.
+
+## Templates ##
+Innumerable gallery plugins with varying licenses exist for image & file lists and viewing of images in a lightbox (Fancybox is good and open source).
+
+By design, DisplayAnything avoids being a kitchen sink, stays light and does not bundle any of these plugins. It's up to you to implement the gallery the way you want it (this saves you having to undo & override any defaults DisplayAnything may set).
+
+View the <a href="./examples/templates">example directory</a> for some sample layouts related to the pages in the examples section.
+
+### Ordered Gallery Items ###
+You can implement ordered galleries in your frontend template to match yours or someone else's drag and drop admin work on the Gallery. Simply change "GalleryItems" to "OrderedGalleryItems" in the template example above.
+
+## Watermarking ##
+To implement watermarking, use the following image template/html snippet within your gallery control:
 
 ```php
-<?php
-class GalleryPage extends Page {
-
-	public static $has_one = array(
-		'ImageGallery' => 'DisplayAnythingGallery',
-	);
-	
-	public function PublicImageGallery() {
-		$gallery = $this->ImageGallery();
-		if($gallery->Visible == 1) {
-			return $gallery;
-		}
-		return FALSE;
-	}
-	
-	
-	public function getCmsFields() {
-		$fields = parent::getCmsFields();
-		
-		//GALLERY per page
-		$gallery = new DisplayAnythingGalleryField(
-			$this,
-			'ImageGallery',
-			'DisplayAnythingGallery'
-		);
-		$gallery->SetTargetLocation('galleryfiles');
-		$fields->addFieldToTab('Root.Gallery', $gallery);
-		
-		return $fields;
-	}
-}
-
-
-class GalleryPage_Controller extends Page_Controller {}
-?>
+<li class="$EvenOdd $FirstLast"><a href="$URL" rel="page-gallery">$WatermarkCroppedImage(90,90)</a></li>
 ```
+
+You can use any Silverstripe image resizing method supported (SetHeight, SetWidth, CroppedImage, PaddedImage, SetSize) but prefixed with "Watermark".
+
+The module ships with a watermark image called "_wm.png". To implement your own, add an image called "_wm.png" to a directory named the same as your theme. For example, if your theme is "green", add a file of that name to document_root/green/images/.
+
+Watermarking is only enabled if you use the Watermark prefixed template controls.
+
+## Watermark configuration options ###
+Use the following in your site config:
++ WatermarkedImage::$opacity (0-100)
++ WatermarkedImage::$position (tr, tl, br, bl). Example br anchors the watermark image to the bottom right of the source image.
++ WatermarkedImage::$padding_x (pixel padding from image edge in the x-axis)
++ WatermarkedImage::$padding_y (pixel padding from image edge in the y-axis)
+
+## Watermark notes ###
++ Uses GD
++ 8 bit PNGs only
++ The watermark source image is not resized
++ The original image is not watermarked
++ WatermarkedImageDecorator decorates Image
 
 ## Support ##
 + No support is available for this version of DisplayAnything. The intended audience is developers who want to hack away and get it working alongside SS3 releases.
-
-## Known issues ##
-+ Quite a few Javascript errors, check your console for more
-+ AJAX requests commonly result in 500 errors e.g  500 (Warning: "get_class() expects parameter 1 to be object, boolean given" at line 270 of /path/to/sapphire/forms/TableListField.php)
-+ Possible SS3 compatibility errors
-
-## Hacking ##
-+ Two CSS files have been created - "ss_cms_improvements.css" and "ss3_compat.css". The former is suggested improvements to the SS3 UI (pretty sparse) the latter contains specific SS3 compatiblity styles for the module.
 
 ## Licenses ##
 DisplayAnything is licensed under the Modified BSD License (refer license.txt)

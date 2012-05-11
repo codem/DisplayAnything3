@@ -356,7 +356,7 @@ class UploadAnythingFile extends File {
 				new LiteralField('FilePathField', "<p class=\"message\">Editing {$this->Name} - {$this->Filename}</p>"),
 				new TextField('Title', 'Title of File', $this->Title),
 				new TextField('Caption', 'File Caption', $this->Caption),
-				new TextareaField('Description', 'File Description', 5, NULL, $this->Description),
+				new TextareaField('Description', 'File Description', $this->Description),
 			)
 		);
 		
@@ -416,7 +416,7 @@ HTML
 		$fields->addFieldsToTab(
 			'Root.TemplateOptions',
 			array(
-				new ImageField('AlternateImage', 'Alternate Image (optional)'),
+				new UploadField('AlternateImage', 'Alternate Image (optional)'),
 			)
 		);
 		

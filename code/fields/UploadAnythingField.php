@@ -1,10 +1,11 @@
 <?php
 /**
-* UploadAnything, DisplayAnything
-* @copyright Codem 2011
-* @author <a href="http://www.codem.com.au">James Ellis</a>
+* UploadAnything, DisplayAnything and friends
+* @package display_anything
+* @copyright Codem 2011 onwards
+* @author <a href="http://www.codem.com.au">Codem / James Ellis</a>
 * @note UploadAnything is a base abstract set of classes used for building file uploaders, galleries and file managers in Silverstripe 2.4.4+. DisplayAnything extends and overrides functionality provided by UploadAnything to do just that. You can use UploadAnything natively as a simple file uploader and management tool or build your own file management tool off it.
-* @note relies on and uses the Valums File Uploader ( http://github.com/valums/file-uploader )
+* @note relies on and uses Valum's File Uploader ( http://github.com/valums/file-uploader )
 * @license BSD
 * @note 
 		<h4>Background</h4>
@@ -23,25 +24,13 @@
 			<li>Documented, extendable class</li>
 			<li>$_REQUEST not used</li>
 		</ul>
-* @note that file extensions are not used
-* @note usage
-
-	try {
-		$uploader = new UploadAnythingField();
-		$uploader
-			->SetTargetLocation('/path/to/some/subdirectory of ASSETS_PATH')
-			->OverwriteFile(FALSE/TRUE)
-			->SetMimeTypes()
-			->ConfigureUploader( array('action' => '/path/to/upload') );
-	} catch (Exception $e) {
-		//an error occurred setting up the uploader
-	}
+* @note that file extensions are not used, except for basic client side validation.
 */
 
 /**
  * UploadAnythingField()
  */
-class UploadAnythingField extends ComplexTableField {
+class UploadAnythingField extends GridField {
 	private $file = FALSE;
 	private $fileKey = 'qqfile';
 	private $returnValue = array();
@@ -63,12 +52,21 @@ class UploadAnythingField extends ComplexTableField {
 	public $file_permission = 0644;
 	public $directory_permission = 0755;
 	
-	//public $requirementsForPopupCallback = "popupRequirements";
+	protected $relatedDataObject;//dataobject related to this field
 	
-	public function __construct($controller, $name, $sourceClass, $fieldList = NULL, $detailFormFields = NULL, $sourceFilter = "", $sourceSort = "", $sourceJoin = "") {
-		parent::__construct($controller, $name, $sourceClass, $fieldList, $detailFormFields, $sourceFilter, $sourceSort, $sourceJoin);
+	public function __construct(
+			$name,
+			$title,
+			$relatedDataObject,
+			SS_List $dataList = null,
+			GridFieldConfig $config = null
+		) {
+		
+		$this->relatedDataObject = $relatedDataObject;
+		parent::__construct($name, $title, $dataList, $config);
 		$this->SetMimeTypes();
 		self::LoadCSS();
+		
 	}
 	
 	/**
@@ -158,18 +156,14 @@ class UploadAnythingField extends ComplexTableField {
 	}
 	
 	/**
-	 * @note this is a compatibility function with File::setName() - as we aren't dealing with a File object at this point, we can't (and don't want to) all File::setName() as needs a File instance. Additionally, we remove deprecated ereg_replace and generally make cross platform file name demunging smarter.
+	 * @note this is a compatibility function with File::setName() - as we aren't dealing with a File object at this point, we can't (and don't want to) use File::setName() as this needs a File instance.
+	 * @note in SS3.0+, FileNameFilter abstracts this cleaning away, unlike the SS2.4 which handles cleaning within File::setName
 	 * @param $name a raw file name without a file extension
 	 * @returns string
 	 */
 	protected function CleanFileName($name) {
-		//trim down the file of any extra leading or trailing crap
-		$name = trim($name, " ._-");
-		// replace one or more white space with a -
-		$name = preg_replace("/\s+/","-", $name);
-		//anything not in this range is removed, this must match File::setName regex
-		$name = preg_replace("/[^A-Za-z0-9.+_\-]/", "", $name);
-		return $name;
+		$filter = Object::create('FileNameFilter');
+		return $filter->filter($name);
 	}
 	
 	/**
@@ -187,7 +181,7 @@ class UploadAnythingField extends ComplexTableField {
 			$suffix = 0;
 			while (file_exists($uploadPath . "/" . $filename . "." . $ext)) {
 				//while the file exists, prepend a suffix to the file name
-				$filename = $suffix . "_" . $filename;
+				$filename = $suffix . "-" . $filename;
 				$suffix++;
 			}
 		}
@@ -485,9 +479,9 @@ class UploadAnythingField extends ComplexTableField {
 	 */
 	private function GetAssociatedRecord() {
 		$list =  array();
-		$list['ID'] = $this->controller->ID;
+		$list['ID'] = $this->relatedDataObject->ID;
 		return array(
-			'd' => get_class($this->controller),
+			'd' => get_class($this->relatedDataObject),
 			'p' => $list,
 		);
 	}
@@ -511,7 +505,7 @@ class UploadAnythingField extends ComplexTableField {
 		}
 		$html = "<div class=\"file-uploader-list field\">{$list}</div>";
 		if($this->show_help) {
-			$html .= "<div class=\"help\"><div class=\"inner\">"
+			$html .= "<div class=\"help help-under\"><div class=\"inner\">"
 					. " <h4>Upload help</h4><ul>"
 					. " <li><strong>Chrome</strong>, <strong>Safari</strong> and <strong>Firefox</strong> support multiple image upload (Hint: 'Ctrl/Cmd + click' to select multiple images in your file chooser)</li>"
 					. "<li>In <strong>Firefox</strong>, Safari and <strong>Chrome</strong> you can drag and drop images onto the upload button</li>"
@@ -526,25 +520,15 @@ class UploadAnythingField extends ComplexTableField {
 	 * FileEditorLink()
 	 * @note provide a link to edit this item
 	 * @returns string
+	 * @note example: /admin/assets/EditForm/field/File/item/12/edit
 	 */
 	protected function FileEditorLink($file, $relation, $action = "edit") {
 		$link = "";
-		switch($relation) {
-			case "self":
-				$link = "";
-				break;
-			case "single":
-				$link = Controller::join_links(Director::baseURL(), $this->Link(), 'item/' . $file->ID . '/' . $action);
-				break;
-			case "gallery":
-				$parts = parse_url($this->Link());
-				$link = Controller::join_links(Director::baseURL(), $parts['path'] . '/item/' . $this->controller->{$this->name}()->ID . '/DetailForm/field/' . $this->itemsClass . '/item/' . $file->ID . '/' . $action . '/?' . (isset($parts['query']) ? $parts['query'] : ''));
-				break;
-			default:
-				throw new Exception("Unhandled relation: {$relation}");
-				break;
+		//no file
+		if(empty($file->ID)) {
+			return "";
 		}
-		return $link;
+		return Controller::join_links(Director::baseURL(), "/admin/assets/EditForm/field/File/item/{$file->ID}/edit");
 	}
 	
 	/**
@@ -566,7 +550,7 @@ class UploadAnythingField extends ComplexTableField {
 		$deletelink = $this->FileEditorLink($file, $relation, "delete");
 		
 		$html .= "<div class=\"file-uploader-item\" rel=\"{$file->ID}\">";
-		$html .= "<a class=\"editlink\" href=\"{$editlink}\" title=\"" . htmlentities($file->Name, ENT_QUOTES) . "\">";
+		$html .= "<a class=\"action-edit editlink\" href=\"{$editlink}\" title=\"" . htmlentities($file->Name, ENT_QUOTES) . "\">";
 		
 		//try to create a thumb (if it is one)
 		$path = BASE_PATH . "/" . $file->Filename;
@@ -608,15 +592,15 @@ class UploadAnythingField extends ComplexTableField {
 	 */
 	private function GetFileList() {
 		$html = "";
-		if(method_exists('DisplayAnythingFileList', $this->controller)) {
-			return $this->{$this->controller}->DisplayAnythingFileList();
+		if(method_exists('DisplayAnythingFileList', $this->relatedDataObject)) {
+			return $this->relatedDataObject->DisplayAnythingFileList();
 		} else {
 			$relation = $this->DataTypeRelation();
 			switch($relation) {
 				case "self":
 					//self - no need to show anything
-					if($this->controller instanceof File) {
-						$html = $this->GetFileListItem($this->controller, $relation);
+					if($this->relatedDataObject instanceof File) {
+						$html = $this->GetFileListItem($this->relatedDataObject, $relation);
 					} else {
 						$html = "DisplayAnything cannot represent this object";
 					}
@@ -624,7 +608,7 @@ class UploadAnythingField extends ComplexTableField {
 				case "single";
 					//the relationship: the related dataobject has one of this file
 					$field = $this->name . "ID";
-					$id = $this->controller->{$this->name . 'ID'};
+					$id = $this->relatedDataObject->{$this->name . 'ID'};
 					if(!empty($id)) {
 						$file = DataObject::get_by_id('File', $id);
 						if($file) {
@@ -636,21 +620,7 @@ class UploadAnythingField extends ComplexTableField {
 					break;
 				case "gallery":
 					//the related dataobject has many files
-					$info = $this->GetComponentInfo();//SS3
-					$files = array();
-					if(isset($info['childClass'])) {
-						//$files = $this->controller->{$this->name}()->{$this->itemsClass}();
-						$where = Convert::raw2sql($info['joinField']) . " = " . Convert::raw2sql($this->controller->{$this->name}()->ID);
-						$files = DataObject::get(
-							$info['childClass'],
-							$where,
-							"\"File\".\"Sort\" ASC, \"File\".\"Created\" DESC"
-						);	
-					} else {
-						//fallback ?
-						throw new Exception("Failed to get valid component info for the gallery. This generally means the dataobject association is not correct.");
-					}
-					
+					$files = $this->getList();
 					if($files) {
 						foreach($files as $file) {
 							$html .= $this->GetFileListItem($file, $relation);
@@ -669,7 +639,7 @@ class UploadAnythingField extends ComplexTableField {
 	 * Field()
 	 * @note just returns the field. Note that the FileUploader.js handles all the HTML machinations, we just provide a container
 	 */
-	function Field() {
+	function Field($properties = array()) {
 		$id = $this->id();
 		$html = "";
 		if($id == "") {
@@ -686,33 +656,38 @@ class UploadAnythingField extends ComplexTableField {
 	 * @note returns the form field
 	 * @returns string
 	 */
-	public function FieldHolder() {
+	public function FieldHolder($properties = array()) {
 		$this->LoadAssets();
+		
+		$gallery = $this->GetGalleryImplementation();
 		
  		$reload = $this->Link('ReloadList');
  		$resort = $this->Link('SortItem');
  		
-		$Title = $this->Title;//SS3 - sourceClass error
+		$Title = (!empty($gallery->Title) ? $gallery->Title : "Un-named gallery");
 		$Message = $this->XML_val('Message');
 		$MessageType = $this->XML_val('MessageType');
 		$RightTitle = $this->XML_val('RightTitle');
 		$Type = $this->XML_val('Type');
-		$extraClass = $this->extraClass;//SS3 - sourceClass error
+		$extraClass = $this->extraClass;
 		$Name = $this->XML_val('Name');
 		$Field = $this->XML_val('Field');
 		
 		// Only of the the following titles should apply
-		$titleBlock = "<label class=\"left\" for=\"{$this->id()}\">Actions: <strong><a href=\"{$reload}\" class=\"reload reload-all\">reload</a></strong><a class=\"sortlink\" href=\"{$resort}\">sort</a>";
-		$titleBlock .= " <span>Max. file size: " . round($this->GetMaxSize() / 1024 / 1024, 2) . "Mb,";
-		$titleBlock .= " File types: " . $this->GetAllowedFilesNote() . "</span>";
-		$titleBlock .= "</label>";
+		$titleBlock = "<div class=\"help\"><div class=\"inner\">";
+		$titleBlock .= "<h4>{$Title}</h4>";
+		$titleBlock .= "<label class=\"left\" for=\"{$this->id()}\">";
+		$titleBlock .= "<ul><li><a href=\"{$reload}\" class=\"reload reload-all\">Reload</a><a class=\"sortlink\" href=\"{$resort}\">sort</a></li>";
+		$titleBlock .= "<li><span>Max. file size: " . round($this->GetMaxSize() / 1024 / 1024, 2) . "Mb</span></li>";
+		$titleBlock .= "<li><span>File types: " . $this->GetAllowedFilesNote() . "</span></li></ul>";
+		$titleBlock .= "</label></div></div>";
 		
 		// $MessageType is also used in {@link extraClass()} with a "holder-" prefix
 		$messageBlock = (!empty($Message)) ? "<span class=\"message $MessageType\">$Message</span>" : "";
 		
 		return <<<HTML
 <div class="file-uploader">
-	<div id="$Name" class="field $Type $extraClass">
+	<div id="$Name" class="field ss-gridfield $Type $extraClass">
 			{$titleBlock}
 			<div class="middleColumn">
 				$Field
@@ -749,14 +724,14 @@ HTML;
 	 */
 	protected function UpdateCurrentRecord($uploadDirectory, $filename) {
 		//updating the current file
-		if(!$this->controller instanceof File) {
+		if(!$this->relatedDataObject instanceof File) {
 			throw new Exception("Replacing file but current controller is not an instance of File");
 		}
 		
 		//just replacing the file - do this and return
-		$filename_path_current = BASE_PATH . '/' . $this->controller->Filename;
+		$filename_path_current = BASE_PATH . '/' . $this->relatedDataObject->Filename;
 		
-		$query = "UPDATE File SET Name='" . Convert::raw2sql($filename) . "', Filename='" . Convert::raw2sql($uploadDirectory . "/" . $filename) . "' WHERE ID = " . Convert::raw2sql($this->controller->ID);
+		$query = "UPDATE File SET Name='" . Convert::raw2sql($filename) . "', Filename='" . Convert::raw2sql($uploadDirectory . "/" . $filename) . "' WHERE ID = " . Convert::raw2sql($this->relatedDataObject->ID);
 		
 		$update = DB::query($query);
 		if($update) {
@@ -839,7 +814,7 @@ HTML;
 				
 				
 				//make a folder record (optionally makes it on the file system as well, although this is done in this->file->save()
-				$folder = Folder::findOrMake($targetDirectory);//without ASSETS_PATH !
+				$folder = Folder::find_or_make($targetDirectory);//without ASSETS_PATH !
 				if(empty($folder->ID)) {
 					$this->UnlinkFile($target);
 					throw new Exception('No folder could be assigned to this file');
@@ -860,8 +835,8 @@ HTML;
 						$id = $file->write();
 						if($id) {
 							//the relationship: the related dataobject has one of this file
-							$this->controller->{$this->name . 'ID'} = $id;
-							$this->controller->write();
+							$this->relatedDataObject->{$this->name . 'ID'} = $id;
+							$this->relatedDataObject->write();
 						} else {
 							throw new Exception("The file '{$filename}' could not be saved (1).");
 						}
@@ -869,29 +844,21 @@ HTML;
 					case "gallery":
 						//add this file to the relation component
 						//the type of file that is the relation
-						$info = $this->GetComponentInfo();//SS3
-						if(!$info || !isset($info['childClass'])) {
-							throw new Exception("Error: {invalid component info detected. This generally means the gallery association with the page is not correct.");
-						}
-						$file_class = $info['childClass'];
-						$file = new $file_class;
-						if(!isset($info['joinField'])) {
-							throw new Exception("Error: {$file_class} does not have a has_one relation linking it to {$item['ownerClass']}.");
-						} else if($file instanceof File) {
-							$file->Name = $filename;
-							$file->Title = $filename;
-							//$file->Filename = $filename;//required?
-							$file->ShowInSearch = 0;
-							$file->ParentID = $folder->ID;
-							$file->OwnerID = $member->ID;
-							$file->{$info['joinField']} = $this->controller->{$this->name}()->ID;//link it to the owner gallery
-							//write the file
-							$id = $file->write();
-							if(!$id) {
-								throw new Exception("The file '{$filename}' could not be saved (2).");
-							}
-						} else {
-							throw new Exception("Error: {$file_class} is not child of 'File'. {$file_class} should extend 'File' or a child of 'File'");
+						
+						$gallery = $this->GetGalleryImplementation();
+						
+						$file = new DisplayAnythingFile();
+						$file->Name = $filename;
+						$file->Title = $filename;
+						//$file->Filename = $filename;//required?
+						$file->ShowInSearch = 0;
+						$file->ParentID = $folder->ID;
+						$file->OwnerID = $member->ID;
+						$file->GalleryID = $gallery->ID;//link it to the owner gallery
+						//write the file
+						$id = $file->write();
+						if(!$id) {
+							throw new Exception("The file '{$filename}' could not be saved (2).");
 						}
 						break;
 					default:
@@ -918,8 +885,9 @@ HTML;
 	 * GetComponentInfo()
 	 * @note gets the component information for the associated dataobject
 	 * @returns mixed
+	 * @deprecated
 	 */
-	final private function GetComponentInfo() {
+	final protected function GetComponentInfo() {
 		try {
 			//this will trigger an exception in SS3.0
 			return $this->controller->{$this->name}()->{$this->itemsClass}()->getComponentInfo();
@@ -962,6 +930,7 @@ HTML;
 					$sort = (isset($item['pos']) ? (int)$item['pos'] : 0);
 					//run a quick query and bypass the ORM
 					$query = "UPDATE \"File\" SET Sort = '" . Convert::raw2sql($sort) . "' WHERE ID = '" . Convert::raw2sql($item['id']) . "'";
+					print $query;
 					$result = DB::query($query);
 					if($result) {
 						$success++;
@@ -973,31 +942,40 @@ HTML;
 	}
 	
 	/**
+	 * GetGalleryImplementation()
+	 * @note returns the implementation of the gallery, either a DisplayAnythingGallery or an UploadAnythingFile
+	 */
+	final protected function GetGalleryImplementation() {
+		if($this->relatedDataObject->has_one($this->name)) {
+			return $this->relatedDataObject->{$this->name}();
+		}
+		return FALSE;
+	}
+	
+	protected function ImplementationIsGallery() {
+		return FALSE;
+	}
+	
+	/**
 	 * DataTypeRelation()
 	 * @note determines the data type relation of the file to the controller
 	 * @returns string 'self' (replace current file) , 'gallery' (has_many) or 'single' (has_one)
 	 * @throws Exception
 	 */
 	final private function DataTypeRelation() {
-	
-		$controller = get_class($this->controller);
-	
-		if($this->controller->has_one($this->name)) {
-			if($this->itemsClass) {
-				if($this->controller->{$this->name}()->has_many($this->itemsClass)) {
-					return "gallery";
-				} else {
-					throw new Exception("Controller '{$controller}' has one '{$this->name}' but '{$this->name}' does not have many '{$this->itemsClass}'");
-				}
+		$relatedDataObjectName = get_class($this->relatedDataObject);
+		if($implementation = $this->GetGalleryImplementation()) {
+			if($this->ImplementationIsGallery()) {
+				return "gallery";
 			} else {
 				return "single";
 			}
-		} else if($controller == $this->name) {
+		} else if($relatedDataObjectName == $this->name) {
 			//replacing current file
 			return "self";
 		}
 		
-		throw new Exception("The datatype relation between '{$this->name}' and '{$controller}' is neither self, has_one or has_many. The file could not be saved");
+		throw new Exception("The datatype relation between '{$this->name}' and '{$relatedDataObjectName}' is neither self, has_one or has_many. The file could not be saved");
 	}
 
 }
@@ -1008,18 +986,18 @@ HTML;
  */
 class UploadAnythingFileField extends FileField {
 
-	public function __construct($name, $title = null, $value = null, $form = null, $rightTitle = null) {
-		parent::__construct($name, $title, $value, $form, $rightTitle);
+	public function __construct($name, $title = null, $value = null) {
+		parent::__construct($name, $title, $value);
 	}
 	
-	public function Field() {
+	public function Field($properties = array()) {
 		return $this->createTag(
 			'input', 
 			array(
 				"type" => "file", 
 				"name" => $this->name,
 				"id" => $this->id(),
-				"tabindex" => $this->getTabIndex()
+				"tabindex" => $this->getAttribute('tabindex')
 			)
 		) . 
 		$this->createTag(
@@ -1028,12 +1006,12 @@ class UploadAnythingFileField extends FileField {
 		  		"type" => "hidden", 
 		  		"name" => "MAX_FILE_SIZE", 
 		  		"value" => UploadAnythingField::GetUploadMaxSize(),
-				"tabindex" => $this->getTabIndex()
+				"tabindex" => $this->getAttribute('tabindex')
 		  	)
 		);
 	}
 	
-	public function FieldHolder() {
+	public function FieldHolder($properties = array()) {
 		$Title = $this->XML_val('Title');
 		$Message = $this->XML_val('Message');
 		$MessageType = $this->XML_val('MessageType');

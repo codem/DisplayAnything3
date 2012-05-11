@@ -156,7 +156,7 @@ class WatermarkedImage extends Image {
 }
 
 
-class WatermarkedImageDecorator extends DataObjectDecorator {
+class WatermarkedImageExtension extends DataExtension {
 
 	private function getWatermarkedImage() {
 		if($this->owner instanceof Image) {

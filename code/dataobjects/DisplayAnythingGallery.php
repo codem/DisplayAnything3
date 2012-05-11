@@ -89,11 +89,11 @@ class DisplayAnythingGallery extends DataObject {
 	
 	/**
 	 * OrderedGalleryItems()
-	 * @note return gallery items ordered as set in admin
+	 * @note return gallery items ordered as set in admin that are marked visible
 	 */
-	public function OrderedGalleryItems() {
-		if($this->Visible == 1) {
-			return DataObject::get('DisplayAnythingFile','GalleryID=' . $this->ID . ' AND Visible = 1', '`File`.`Sort` ASC, `File`.`Created` DESC');
+	public function OrderedGalleryItems($only_visible = TRUE) {
+		if(($only_visible && $this->Visible == 1) || !$only_visible) {
+			return DataObject::get('DisplayAnythingFile','GalleryID=' . $this->ID, '"File"."Sort" ASC, "File"."Created" DESC');
 		}
 		return FALSE;
 	}

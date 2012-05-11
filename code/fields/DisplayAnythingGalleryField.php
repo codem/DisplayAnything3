@@ -5,14 +5,33 @@
  */
 class DisplayAnythingGalleryField extends UploadAnythingField {
 	
-	protected $itemsClass;
+	protected $detect_image_gallery_module = TRUE;//not implemented in SS3.0 (ignored)
 	
-	protected $detect_image_gallery_module = TRUE;
-	
-	public function __construct($controller, $name, $sourceClass, $itemsClass = "GalleryItems", $fieldList = null, $detailFormFields = null, $sourceFilter = "", $sourceSort = "", $sourceJoin = "") {
-		parent::__construct($controller, $name, $sourceClass, $fieldList, $detailFormFields, $sourceFilter, $sourceSort, $sourceJoin);
-		$this->itemsClass = $itemsClass;
+	/**
+	 * @note we're using GalleryItems as the DataList here, which is automatically returned from the related DataObject->Name()->GalleryItems()
+	 */
+	public function __construct(
+			$name,//name of the field
+			$title,//title of the field
+			$relatedDataObject,//related dataobject (a page, a dataobject)
+			GridFieldConfig $config = null //as it says
+		) {
+		
+		$this->relatedDataObject = $relatedDataObject;
+		$this->name = $name;
+		parent::__construct($name, $title, $relatedDataObject, $this->GetGalleryItems(), $config);
 		$this->SetMimeTypes();
+	}
+	
+	private function GetGalleryItems() {
+		if($gallery = $this->GetGalleryImplementation()) {
+			return $gallery->OrderedGalleryItems(FALSE);
+		}
+		return NULL;
+	}
+	
+	protected function ImplementationIsGallery() {
+		return TRUE;
 	}
 
 	/**
@@ -28,19 +47,20 @@ class DisplayAnythingGalleryField extends UploadAnythingField {
 	 */
 	protected function ImageGalleryAlbums() {
 		$list = array();
-		
-		if($id = $this->controller->ID) {
-			$sql = "SELECT a.*, COUNT(i.ID) AS ItemCount FROM ImageGalleryAlbum a"
-				. " LEFT JOIN ImageGalleryItem i ON i.AlbumID = a.ID"
-				. " WHERE a.ImageGalleryPageID = {$id}";
-			$results = DB::Query($sql, FALSE);
-			if(!$results || !$results->valid()) {
-				//just return an empty list so as not to show the migration tab
-				return array();
-			}
-			foreach($results as $record) {
-				if(!empty($record['ID'])) {
-					$list[$record['ID']] = "  " . $record['AlbumName'] . " - {$record['ItemCount']} image(s)";
+		if($this->detect_image_gallery_module) {
+			if($id = $this->relatedDataObject->ID) { //TODO
+				$sql = "SELECT a.*, COUNT(i.ID) AS ItemCount FROM ImageGalleryAlbum a"
+					. " LEFT JOIN ImageGalleryItem i ON i.AlbumID = a.ID"
+					. " WHERE a.ImageGalleryPageID = {$id}";
+				$results = DB::Query($sql, FALSE);
+				if(!$results || !$results->valid()) {
+					//just return an empty list so as not to show the migration tab
+					return array();
+				}
+				foreach($results as $record) {
+					if(!empty($record['ID'])) {
+						$list[$record['ID']] = "  " . $record['AlbumName'] . " - {$record['ItemCount']} image(s)";
+					}
 				}
 			}
 		}
@@ -48,7 +68,8 @@ class DisplayAnythingGalleryField extends UploadAnythingField {
 	}
 	
 	protected function GetAllowedFilesNote() {
-		$usage = $this->controller->{$this->name}()->Usage();
+		$gallery = $this->GetGalleryImplementation();
+		$usage = $gallery->Usage();
 		return $usage->TitleMap();
 	}
 	
@@ -58,9 +79,11 @@ class DisplayAnythingGalleryField extends UploadAnythingField {
 	 * @note we don't use the ORM here as the image_gallery module may no longer exist in the code base
 	 */
 	protected function ImageGalleryAlbum($id) {
-		if($results = DB::Query("SELECT a.* FROM ImageGalleryAlbum a WHERE a.ID = {$id}")) {
-			foreach($results as $record) {
-				return $record;
+		if($this->detect_image_gallery_module) {
+			if($results = DB::Query("SELECT a.* FROM ImageGalleryAlbum a WHERE a.ID = {$id}")) {
+				foreach($results as $record) {
+					return $record;
+				}
 			}
 		}
 		return FALSE;
@@ -73,25 +96,31 @@ class DisplayAnythingGalleryField extends UploadAnythingField {
 	 */
 	protected function ImageGalleryAlbumItems($album_id) {
 		$items = array();
-		if($results = DB::Query("SELECT i.* FROM ImageGalleryItem i WHERE i.AlbumID = {$album_id}")) {
-			foreach($results as $record) {
-				$items[] = $record;
+		if($this->detect_image_gallery_module) {
+			if($results = DB::Query("SELECT i.* FROM ImageGalleryItem i WHERE i.AlbumID = {$album_id}")) {
+				foreach($results as $record) {
+					$items[] = $record;
+				}
 			}
 		}
 		return $items;
 	}
 	
-	public function FieldHolder() {
+	public function FieldHolder($properties = array()) {
 	
-		$fields = new Fieldset(array(new TabSet('Root')));
+		$fields = new FieldList(array(new TabSet('Root')));
 		$fields->addFieldToTab('Root', new Tab($this->name .'Files', 'Files'));
 		$fields->addFieldToTab('Root', new Tab($this->name .'Details', 'Details'));
 		$fields->addFieldToTab('Root', new Tab($this->name .'Usage', 'Usage'));
 		
-		$id = $this->controller->{$this->name}()->getField('ID');
+		$gallery = $this->GetGalleryImplementation();
+		
+		$id = $gallery->getField('ID');
+		
+		$gallery = $this->GetGalleryImplementation();
 		
 		//MIGRATION TAB
-		$migrated_value = $this->controller->{$this->name}()->getField('Migrated');
+		$migrated_value = $gallery->getField('Migrated');
 		if($this->detect_image_gallery_module) {
 			if($migrated_value == 0) {
 				//display only if we want to detect imagegallery albums and it's not already migrated
@@ -134,20 +163,27 @@ class DisplayAnythingGalleryField extends UploadAnythingField {
 		$fields->addFieldsToTab(
 			"Root.{$this->name}Details",
 			array(
-				new TextField("{$this->name}[{$id}][Title]","Title", $this->controller->{$this->name}()->getField('Title')),
-				new TextareaField("{$this->name}[{$id}][Description]","Description", 3, NULL, $this->controller->{$this->name}()->getField('Description')),
-				new CheckboxField("{$this->name}[{$id}][Visible]","Publicly Visible", $this->controller->{$this->name}()->getField('Visible') == 1 ?  TRUE : FALSE),
+				new TextField("{$this->name}[{$id}][Title]","Title", $gallery->getField('Title')),
+				new TextareaField("{$this->name}[{$id}][Description]","Description", $gallery->getField('Description')),
+				new CheckboxField("{$this->name}[{$id}][Visible]","Publicly Visible", $gallery->getField('Visible') == 1 ?  TRUE : FALSE),
 			)
 		);
 		
-		$picker = new DropDownField("{$this->name}[{$id}][UsageID]","", DataObject::get('DisplayAnythingGalleryUsage')->map('ID','TitleMap'), $this->controller->{$this->name}()->getField('UsageID'), NULL, '');
+		$picker = new DropDownField(
+			"{$this->name}[{$id}][UsageID]",
+			"",
+			DataObject::get('DisplayAnythingGalleryUsage')->map('ID','TitleMap'),
+			$gallery->getField('UsageID'),
+			NULL,
+			'Add new'
+		);
 		$picker->addExtraClass('usage_picker');
 		
 		$usage_id = new HiddenField("GalleryUsage[{$this->name}][{$id}][ID]");
 		$usage_id->addExtraClass('usage_id');
 		$usage_title = new TextField("GalleryUsage[{$this->name}][{$id}][Title]","Title");
 		$usage_title->addExtraClass('usage_title');
-		$usage_mimetypes = new TextareaField("GalleryUsage[{$this->name}][{$id}][MimeTypes]","Allowed Mimetypes", 3, NULL);
+		$usage_mimetypes = new TextareaField("GalleryUsage[{$this->name}][{$id}][MimeTypes]","Allowed Mimetypes");
 		$usage_mimetypes->addExtraClass('usage_mimetypes');
 		
 		$fields->addFieldsToTab(
@@ -215,7 +251,7 @@ class DisplayAnythingGalleryField extends UploadAnythingField {
 	 * @return boolean
 	 */
 	protected function ControllerIsSiteTree() {
-		return $this->controller instanceof SiteTree;
+		return $this->relatedDataObject instanceof SiteTree;
 	}
 	
 	/**
@@ -227,14 +263,14 @@ class DisplayAnythingGalleryField extends UploadAnythingField {
 	 			1. what happens with multiple tables that contain the same column name ?
 	 			2. using "`Page`.`{$name}` = " . $id assumes the gallery is attached to Page
 	 			3. using "`{$class}`.`{$name}` = " . $id assumes that the controller class contains the column and not a parent class
+	 * @todo try to remember what this does !?!
 	 */
 	protected function GetPages($id, $raw = FALSE) {
 		$list = FALSE;
 		if($id > 0 && $this->ControllerIsSiteTree()) {
-			$class = get_class($this->controller);
-			$current = $this->controller->ID;
-			$name = $this->name . "ID";
-			$pages = DataObject::get($class, "`{$name}` = " . $id);
+			$class = get_class($this->relatedDataObject);
+			$current = $this->relatedDataObject->ID;
+			$pages = DataObject::get($class, "`{$class}`.`ID` = " . $id);
 			//$pages = DataObject::get($class, "`{$class}`.`{$name}` = " . $id);
 			if($pages) {
 				if($raw) {
@@ -262,7 +298,7 @@ class DisplayAnythingGalleryField extends UploadAnythingField {
 			if($pages = $this->GetPages($id, TRUE)) {
 			
 				//the gallery must be saved against at least one page
-				$savelist = (!empty($_POST['SharedPages'][$this->name][$id]) && is_array($_POST['SharedPages'][$this->name][$id]) ? $_POST['SharedPages'][$this->name][$id] : array($this->controller->ID));
+				$savelist = (!empty($_POST['SharedPages'][$this->name][$id]) && is_array($_POST['SharedPages'][$this->name][$id]) ? $_POST['SharedPages'][$this->name][$id] : array($this->relatedDataObject->ID));
 				
 				//cycle through current associated pages
 				foreach($pages as $page) {
@@ -304,45 +340,50 @@ class DisplayAnythingGalleryField extends UploadAnythingField {
 		return FALSE;
 	}
 	
-	public function saveInto(DataObject $record) {
+	public function saveInto(DataObjectInterface $record) {
 	
-		//save into the DisplayAnythingGallery
-		if(!empty($_POST[$this->name]) && is_array($_POST[$this->name])) {
-			$gallery = $record->{$this->name}();
-			$migrate = FALSE;
-			foreach($_POST[$this->name] as $id=>$data) {
-			
-				$this->SaveSharedPages($id);
-			
-				if($usage = $this->SaveUsage($id)) {
-					$gallery->UsageID = $usage;
-				} else if(!empty($data['UsageID'])) {
-					$gallery->UsageID = $data['UsageID'];
-				}
-			
-				if(!empty($data['MigrateImageGalleryAlbumID'])) {
-					$migrate = $data['MigrateImageGalleryAlbumID'];
+		try {
+	
+			//save into the DisplayAnythingGallery
+			if(!empty($_POST[$this->name]) && is_array($_POST[$this->name])) {
+				$gallery = $record->{$this->name}();
+				$migrate = FALSE;
+				foreach($_POST[$this->name] as $id=>$data) {
+				
+				
+					$this->SaveSharedPages($id);
+				
+					if($usage = $this->SaveUsage($id)) {
+						$gallery->UsageID = $usage;
+					} else if(!empty($data['UsageID'])) {
+						$gallery->UsageID = $data['UsageID'];
+					}
+				
+					if(!empty($data['MigrateImageGalleryAlbumID'])) {
+						$migrate = $data['MigrateImageGalleryAlbumID'];
+					}
+					
+					if($id == 0 || $id == $gallery->ID) {
+						//creating this gallery or updating it...
+						$gallery->Title = !empty($data['Title']) ? $data['Title'] : '';	
+						$gallery->Description = !empty($data['Description']) ? $data['Description'] : '';	
+						$gallery->Visible = !empty($data['Visible']) ?  1 : 0;
+						$gallery->Migrated = !empty($data['Migrated']) ?  1 : 0;
+						if($id = $gallery->write()) {
+							$relation_field = $this->name . "ID";
+							$record->$relation_field = $id;
+						} else {
+							throw new Exception("Could not save gallery '{$gallery->Title}'");
+						}
+						break;
+					}
 				}
 				
-				if($id == 0 || $id == $gallery->ID) {
-					//creating this gallery or updating it...
-					$gallery->Title = !empty($data['Title']) ? $data['Title'] : '';	
-					$gallery->Description = !empty($data['Description']) ? $data['Description'] : '';	
-					$gallery->Visible = !empty($data['Visible']) ?  1 : 0;
-					$gallery->Migrated = !empty($data['Migrated']) ?  1 : 0;
-					if($id = $gallery->write()) {
-						$relation_field = $this->name . "ID";
-						$record->$relation_field = $id;
-					} else {
-						throw new Exception("Could not save gallery '{$gallery->Title}'");
-					}
-					break;
+				if($migrate && $gallery) {
+					$this->MigrateImageGalleryAlbum($migrate, $gallery);
 				}
 			}
-			
-			if($migrate && $gallery) {
-				$this->MigrateImageGalleryAlbum($migrate, $gallery);
-			}
+		} catch (Exception $e) {
 		}
 	}
 	

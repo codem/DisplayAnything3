@@ -1,6 +1,8 @@
 /**
  * UploadAnything - javascript behavours for image uploader
  * @copyright Codem 2011
+ * @author James Ellis
+ * @note issues to http://github.com/codem/DisplayAnything3/issues please
  * @see license.txt
  */
 var UploadAnything = function() {};
@@ -35,6 +37,8 @@ UploadAnything.prototype = {
 		}
 		
 		this.uploader = new qq.FileUploader(upload_config);
+		
+		this.viewer();
 	},
 	check_completion : function(FileUploader) {
 		if(!this.in_progress()) {
@@ -43,6 +47,26 @@ UploadAnything.prototype = {
 	},
 	in_progress : function() {
 		return this.uploads > 0;
+	},
+	queue_init : function() {
+		//on load, queue everything matching up
+		this.queue_all();
+		var _self = this;
+		//when the cms container changes state...
+		jQuery('.cms-container').live(
+			'afterstatechange',
+			function(e, data) {
+				//..and after a state change in the CMS container
+				_self.queue_all();
+			}
+		);
+		//and when the cms edit form completes loading after change
+		jQuery('.cms-content').live(
+			'reloadeditform',
+			function(e, ui) {
+				_self.queue_all();
+			}
+		);
 	},
 	queue_all : function() {
 		var _self = this;
@@ -58,27 +82,8 @@ UploadAnything.prototype = {
 			}
 		);
 	},
-	//load up in a full screen greybox
-	load_lightbox : function(elem) {
-		try {
-			var _self = this;
-			var href = jQuery(elem).attr('href');
-			var title = jQuery(elem).attr('title');
-			if(title == '') {
-				title = 'Un-named file';
-			}
-			GB_showFullScreen(
-				title,
-				href,
-				function() {
-					//closing
-					jQuery(elem).parents('.file-uploader').find('a.reload').trigger('click');
-				}
-			);
-		} catch (e) {
-			return false;
-		}
-	},
+	
+	//handles behaviour on the viewer
 	viewer : function() {
 		var _self = this;
 		
@@ -106,17 +111,6 @@ UploadAnything.prototype = {
 					);
 				}
 			}).disableSelection();
-	
-		//editing items, launch lightbox
-		jQuery('.file-uploader-list .file-uploader-item a.editlink')
-			.live(
-				'click',
-				function(event) {
-					event.preventDefault();
-					_self.load_lightbox(this);
-					return false;//avoid event bubbling
-				}
-			);
 		
 		//reload all items beyond just the list of images
 		jQuery('.file-uploader a.reload-all')
@@ -206,7 +200,6 @@ jQuery(document).ready(
 	function() {
 		var u = new UploadAnything();
 		u.init();
-		u.queue_all();
-		u.viewer();
+		u.queue_init();
 	}
 );
