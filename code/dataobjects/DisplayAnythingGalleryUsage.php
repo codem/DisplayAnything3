@@ -32,6 +32,10 @@ class DisplayAnythingGalleryUsage extends DataObject {
 		);
 	}
 	
+	public static function splitterChars() {
+		return ",\n\r ";
+	}
+	
 	/**
 	 * requireDefaultRecords()
 	 * @note seeds the usage table with some default 'gallery' types
