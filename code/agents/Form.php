@@ -34,8 +34,9 @@ class UploadAnything_Upload_Form {
 	function getSize() {
 		return $_FILES[$this->fileKey]['size'];
 	}
+	//ignore the mimetype provided by _FILES, not trusted, allow the server to find it.
 	function getMimeType() {
-		return $_FILES[$this->fileKey]['type'];
+		return UploadAnythingFile::MimeType($_FILES[$this->fileKey]['tmp_name']);
 	}
 }
 ?>
