@@ -1,7 +1,7 @@
 <?php
 /**
  * DisplayAnythingGalleryField()
- * @note provides a gallery conifigration and viewer field in the CMS for a DisplayAnythingGallery
+ * @note provides a gallery configuration and viewer field in the CMS for a DisplayAnythingGallery
  */
 class DisplayAnythingGalleryField extends UploadAnythingField {
 	
@@ -14,7 +14,7 @@ class DisplayAnythingGalleryField extends UploadAnythingField {
 			$name,//name of the field
 			$title,//title of the field
 			$relatedDataObject,//related dataobject (a page, a dataobject)
-			GridFieldConfig $config = null //as it says
+			GridFieldConfig $config = NULL //as it says
 		) {
 		
 		$this->relatedDataObject = $relatedDataObject;
@@ -23,48 +23,13 @@ class DisplayAnythingGalleryField extends UploadAnythingField {
 		$this->SetMimeTypes();
 	}
 	
-	private function GetGalleryItems() {
-		if($gallery = $this->GetGalleryImplementation()) {
-			return $gallery->OrderedGalleryItems(FALSE);
-		}
-		return NULL;
-	}
-	
 	protected function ImplementationIsGallery() {
 		return TRUE;
 	}
-
-	/**
-	 * ImageGalleryAlbums()
-	 * @note gets ImageGalleryAlbum records for the current page
-	 * @note we don't use the ORM here as the image_gallery module may no longer exist in the code base
-	 * @note this will return an empty list if
-	 * 			1. There are no ImageGalleryAlbum or ImageGalleryItem tables in the database
-	 * 			2. There are but no Albums are related to the current page
-	 * 			3. There is no current page (the controller->ID)
-	 * 			Rather than show an error, the CMS tab should not show at all as it would be irritating for those who are not doing migrations
-	 * @returns array
-	 */
-	protected function ImageGalleryAlbums() {
-		$list = array();
-		if($this->detect_image_gallery_module) {
-			if($id = $this->relatedDataObject->ID) { //TODO
-				$sql = "SELECT a.*, COUNT(i.ID) AS ItemCount FROM ImageGalleryAlbum a"
-					. " LEFT JOIN ImageGalleryItem i ON i.AlbumID = a.ID"
-					. " WHERE a.ImageGalleryPageID = {$id}";
-				$results = DB::Query($sql, FALSE);
-				if(!$results || !$results->valid()) {
-					//just return an empty list so as not to show the migration tab
-					return array();
-				}
-				foreach($results as $record) {
-					if(!empty($record['ID'])) {
-						$list[$record['ID']] = "  " . $record['AlbumName'] . " - {$record['ItemCount']} image(s)";
-					}
-				}
-			}
-		}
-		return $list;
+	
+	private function GetGalleryItems() {
+		$gallery = $this->GetGalleryImplementation();
+		return $gallery->OrderedGalleryItems(FALSE);
 	}
 	
 	protected function GetAllowedFilesNote() {
@@ -74,36 +39,34 @@ class DisplayAnythingGalleryField extends UploadAnythingField {
 	}
 	
 	/**
-	 * ImageGalleryAlbum()
-	 * @note gets an ImageGalleryAlbum record
-	 * @note we don't use the ORM here as the image_gallery module may no longer exist in the code base
+	 * FieldPrefix()
+	 * @note HTML to place before the form field HTML
 	 */
-	protected function ImageGalleryAlbum($id) {
-		if($this->detect_image_gallery_module) {
-			if($results = DB::Query("SELECT a.* FROM ImageGalleryAlbum a WHERE a.ID = {$id}")) {
-				foreach($results as $record) {
-					return $record;
-				}
-			}
-		}
-		return FALSE;
+	public function FieldPrefix() {
+		return "";
 	}
 	
 	/**
-	 * ImageGalleryAlbumItems()
-	 * @note gets ImageGalleryItems for an ImageGalleryAlbum record
-	 * @note we don't use the ORM here as the image_gallery module may no longer exist in the code base
+	 * FieldSuffix()
+	 * @note HTML to place after the form field HTML
 	 */
-	protected function ImageGalleryAlbumItems($album_id) {
-		$items = array();
-		if($this->detect_image_gallery_module) {
-			if($results = DB::Query("SELECT i.* FROM ImageGalleryItem i WHERE i.AlbumID = {$album_id}")) {
-				foreach($results as $record) {
-					$items[] = $record;
-				}
-			}
+	public function FieldSuffix() {
+		$gallery = $this->GetGalleryImplementation();
+		$list = $gallery->GetFileList($this);
+		if(empty($list)) {
+			$list = "<div class=\"file-uploader-item\"><p>No files have been associated yet...</p></div>";
 		}
-		return $items;
+		$html = "<div class=\"file-uploader-list field\">{$list}</div>";
+		if($this->show_help) {
+			$html .= "<div class=\"help help-under\"><div class=\"inner\">"
+					. " <h4>Upload help</h4><ul>"
+					. " <li><strong>Chrome</strong>, <strong>Safari</strong> and <strong>Firefox</strong> support multiple image upload (Hint: 'Ctrl/Cmd + click' to select multiple images in your file chooser)</li>"
+					. "<li>In <strong>Firefox</strong>, Safari and <strong>Chrome</strong> you can drag and drop images onto the upload button</li>"
+					. "<li>Internet Explorer <= 9 does not support multiple file uploads or drag and drop of files.</li>"
+					. "</ul>"
+					. "</div></div>";
+		}
+		return $html;
 	}
 	
 	public function FieldHolder($properties = array()) {
@@ -116,8 +79,6 @@ class DisplayAnythingGalleryField extends UploadAnythingField {
 		$gallery = $this->GetGalleryImplementation();
 		
 		$id = $gallery->getField('ID');
-		
-		$gallery = $this->GetGalleryImplementation();
 		
 		//MIGRATION TAB
 		$migrated_value = $gallery->getField('Migrated');
@@ -190,9 +151,9 @@ class DisplayAnythingGalleryField extends UploadAnythingField {
 			"Root.{$this->name}Usage",
 			array(
 				new LiteralField("GalleryUsageBoxStart", "<div class=\"display_anything display_anything_usage\">"),
-				new HeaderField("GalleryUsagePicker","Pick a gallery usage", 5),
+				new HeaderField("GalleryUsagePicker","Current gallery usage", 4),
 				$picker,
-				new HeaderField("GalleryUsageEntry","Enter new usage or choose a current one to edit", 5),
+				new HeaderField("GalleryUsageEntry","Enter new usage or choose a current one to edit", 4),
 				$usage_id, $usage_title, $usage_mimetypes,
 				new LiteralField("GalleryUsageBoxEnd", "</div>"),
 			)
@@ -247,7 +208,7 @@ class DisplayAnythingGalleryField extends UploadAnythingField {
 	
 	/**
 	 * ControllerIsSiteTree()
-	 * @note determine if the current controller is an instance of SiteTree
+	 * @note determine if the current controller is an instance of SiteTree (i.e a Page)
 	 * @return boolean
 	 */
 	protected function ControllerIsSiteTree() {
@@ -329,7 +290,12 @@ class DisplayAnythingGalleryField extends UploadAnythingField {
 			//adding a new gallery usage
 			$usage = new DisplayAnythingGalleryUsage();
 			$usage->Title = $_POST['GalleryUsage'][$this->name][$id]['Title'];
-			$usage->MimeTypes = (!empty($_POST['GalleryUsage'][$this->name][$id]['MimeTypes']) ? $_POST['GalleryUsage'][$this->name][$id]['MimeTypes'] : '');
+			$mimetypes = (!empty($_POST['GalleryUsage'][$this->name][$id]['MimeTypes']) ? $_POST['GalleryUsage'][$this->name][$id]['MimeTypes'] : '');
+			
+			//if one per line, replace with commas
+			$mimetypes = preg_replace("/[\n\r\s]+/", ",", $mimetypes);
+			$mimetypes = preg_replace("/[,]{2}/", ",", $mimetypes);
+			$usage->MimeTypes = $mimetypes;
 			
 			if(!empty($_POST['GalleryUsage'][$this->name][$id]['ID'])) {
 				$usage->ID = $_POST['GalleryUsage'][$this->name][$id]['ID'];
@@ -340,6 +306,11 @@ class DisplayAnythingGalleryField extends UploadAnythingField {
 		return FALSE;
 	}
 	
+	
+	/**
+	 * saveInto()
+	 * @note saves the current record
+	 */
 	public function saveInto(DataObjectInterface $record) {
 	
 		try {
@@ -386,6 +357,8 @@ class DisplayAnythingGalleryField extends UploadAnythingField {
 		} catch (Exception $e) {
 		}
 	}
+	
+	//------------------- ImageGallery Migration methods 
 	
 	protected function MigrateImageGalleryAlbum($id, $gallery) {
 		try {
@@ -481,6 +454,73 @@ class DisplayAnythingGalleryField extends UploadAnythingField {
 		} catch (Exception  $e) {
 			//failed
 		}
+	}
+
+	/**
+	 * ImageGalleryAlbums()
+	 * @note gets ImageGalleryAlbum records for the current page
+	 * @note we don't use the ORM here as the image_gallery module may no longer exist in the code base
+	 * @note this will return an empty list if
+	 * 			1. There are no ImageGalleryAlbum or ImageGalleryItem tables in the database
+	 * 			2. There are but no Albums are related to the current page
+	 * 			3. There is no current page (the controller->ID)
+	 * 			Rather than show an error, the CMS tab should not show at all as it would be irritating for those who are not doing migrations
+	 * @returns array
+	 */
+	protected function ImageGalleryAlbums() {
+		$list = array();
+		if($this->detect_image_gallery_module) {
+			if($id = $this->relatedDataObject->ID) { //TODO
+				$sql = "SELECT a.*, COUNT(i.ID) AS ItemCount FROM ImageGalleryAlbum a"
+					. " LEFT JOIN ImageGalleryItem i ON i.AlbumID = a.ID"
+					. " WHERE a.ImageGalleryPageID = {$id}";
+				$results = DB::Query($sql, FALSE);
+				if(!$results || !$results->valid()) {
+					//just return an empty list so as not to show the migration tab
+					return array();
+				}
+				foreach($results as $record) {
+					if(!empty($record['ID'])) {
+						$list[$record['ID']] = "  " . $record['AlbumName'] . " - {$record['ItemCount']} image(s)";
+					}
+				}
+			}
+		}
+		return $list;
+	}
+	
+	
+	/**
+	 * ImageGalleryAlbum()
+	 * @note gets an ImageGalleryAlbum record
+	 * @note we don't use the ORM here as the image_gallery module may no longer exist in the code base
+	 */
+	protected function ImageGalleryAlbum($id) {
+		if($this->detect_image_gallery_module) {
+			if($results = DB::Query("SELECT a.* FROM ImageGalleryAlbum a WHERE a.ID = {$id}")) {
+				foreach($results as $record) {
+					return $record;
+				}
+			}
+		}
+		return FALSE;
+	}
+	
+	/**
+	 * ImageGalleryAlbumItems()
+	 * @note gets ImageGalleryItems for an ImageGalleryAlbum record
+	 * @note we don't use the ORM here as the image_gallery module may no longer exist in the code base
+	 */
+	protected function ImageGalleryAlbumItems($album_id) {
+		$items = array();
+		if($this->detect_image_gallery_module) {
+			if($results = DB::Query("SELECT i.* FROM ImageGalleryItem i WHERE i.AlbumID = {$album_id}")) {
+				foreach($results as $record) {
+					$items[] = $record;
+				}
+			}
+		}
+		return $items;
 	}
 }
 ?>

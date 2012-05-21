@@ -26,7 +26,6 @@ class Car extends DataObject {
 			'Photos',
 			'DisplayAnythingGallery'
 		);
-		$gallery->SetTargetLocation('/car_photos');//relative to ASSETS_PATH
 		$fields->addFieldToTab('Root.Photos', $gallery);
 		
 		return $fields;

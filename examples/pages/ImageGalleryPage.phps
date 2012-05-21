@@ -21,7 +21,6 @@ class ImageGalleryPage extends Page {
 			$this //related dataobject
 		);
 
-		$gallery->SetTargetLocation('galleryfiles');
 		$fields->addFieldToTab('Root.Gallery', $gallery);
 		
 		return $fields;

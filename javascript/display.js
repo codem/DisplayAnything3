@@ -4,6 +4,7 @@
  * @author James Ellis
  * @note issues to http://github.com/codem/DisplayAnything3/issues please
  * @see license.txt
+ * @todo handle edit links using loadPanel to load up the editing form for a single File in context
  */
 var UploadAnything = function() {};
 UploadAnything.prototype = {
@@ -167,8 +168,33 @@ UploadAnything.prototype = {
 					return false;
 				}
 			);
+		
+		/*
+		//edit items
+		jQuery('.file-uploader-list .file-uploader-item a.editlink')
+			.live(
+				'click',
+				function(event) {
+					event.preventDefault();
+					var container = jQuery(this).parents('.file-uploader-item').children('.edit-container');
+					container.children('.errorinto').hide();
+					try {
+						container.children('.loadinto').load(
+							jQuery(this).attr('href'),
+							{},
+							function() {
+								//jQuery(this).parent('.file-uploader-item').css('width')
+							}
+						);
+					} catch (e) {
+						container.children('.errorinto').show();
+					}
+					return false;
+				}
+			);
+		*/
 			
-		//edit usage
+		//edit gallery usage
 		jQuery('.display_anything_usage').find('select.usage_picker').change(
 			function() {
 				var p = jQuery(this).parents('.display_anything_usage');

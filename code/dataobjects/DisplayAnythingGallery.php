@@ -1,73 +1,20 @@
 <?php
 /**
- * Contains Gallery dataobjects and supporting classes
- */
-
-/**
- * Gallery usage configuration class
- */
-class DisplayAnythingGalleryUsage extends DataObject {
-
-	static $db = array(
-		'Title' => 'varchar(255)',
-		'MimeTypes' => 'text',
-	);
-	
-	public function TitleMap() {
-		$types = explode(",", $this->MimeTypes);
-		return $this->Title . " (" . implode(",", array_unique($types)) . ")";
-	}
-	
-	protected function defaultUsageRecords() {
-		return array(
-			array(
-				'Title' => 'Image',
-				'MimeTypes' => 'image/png,image/jpg,image/jpeg,image/gif',
-			),
-			array(
-				'Title' => 'Documents',
-				'MimeTypes' => 'text/plain',
-			),
-		);
-	}
-	
-	public static $summary_fields = array(
-		'Title' => 'Usage',
-		'MimeTypes' => 'Allowed MimeTypes',
-	);
-	
-	
-	/**
-	 * requireDefaultRecords()
-	 * @note seeds the usage table with some default 'gallery' types
-	 * @todo if there is a less hackish way to do this I'm all ears
-	 */
-	public function requireDefaultRecords() {
-		try {
-			$query = "SELECT COUNT(ID) AS Records FROM DisplayAnythingGalleryUsage";
-			if(($result = DB::Query($query)) && ($record = $result->current()) && ($record['Records'] == 0)) {
-				$defaults = self::defaultUsageRecords();
-				foreach($defaults as $default) {
-					$usage = new DisplayAnythingGalleryUsage($default);
-					$usage->write();
-				}
-				return TRUE;
-			}
-		} catch (Exception $e) {
-		}
-		return FALSE;
-	}
-}
-
-/**
   * DisplayAnythingGallery()
   * @note contains many DisplayAnythingFile()s
  */
 class DisplayAnythingGallery extends DataObject {
+
+	//for admin thumbs
+	private $resize_method = "CroppedImage";
+	private $thumb_width = 120;
+	private $thumb_height = 120;
+	
 	static $db = array(
 		'Title' => 'varchar(255)',
 		'Description' => 'text',
 		'Visible' => 'boolean',
+		'GalleryFilePath' => 'varchar(255)',//where files in this gallery are stored on disk, if left empty, the field will automatically determine this
 		'Migrated' => 'boolean',//this is set when the gallery migration is complete
 		//options for this gallery
 		'ExtraMimeTypes' => 'text',//list of extra mimetypes for this gallery
@@ -97,20 +44,112 @@ class DisplayAnythingGallery extends DataObject {
 		}
 		return FALSE;
 	}
-}
-
-/**
- * DisplayAnythingYouTubeGallery()
- * @note a gallery of DisplayAnythingYouTubeVideoFile(s)
- */
-class DisplayAnythingYouTubeGallery extends DisplayAnythingGallery {
-	static $has_many = array(
-		'GalleryItems' => 'DisplayAnythingYouTubeVideoFile'
-	);
 	
-	public function onBeforeWrite() {
-		parent::onBeforeWrite();
-		$this->ClassName = __CLASS__;
+	/**
+	 * GetFileList()
+	 * @returns string
+	 */
+	public function GetFileList(UploadAnythingField $field) {
+		$html = "";
+		//the related dataobject has many files
+		$files = $this->OrderedGalleryItems();
+		if($files) {
+			foreach($files as $file) {
+				$html .= $this->GetFileListItem($file, $field);
+			}
+		}
+		return $html;
+	}
+	
+	/**
+	 * GetFileListItem()
+	 * @note returns an HTML string representation of one gallery item
+	 * @note in gallery mode /admin/EditForm/field/ImageGallery/item/1/ DetailForm/field/GalleryItems/item/78/edit?SecurityID=xyz
+	 * @note in single mode /admin/EditForm/field/FeatureImage/item/80/edit?SecurityID=xyz
+	 * DeleteLink
+	 * @note in gallery mode: /admin/EditForm/field/ImageGallery/item/1/DetailForm/field/GalleryItems/item/78/delete?SecurityID=xyz
+	 * @note in single mode /admin/EditForm/field/FeatureImage/item/80/delete?SecurityID=xyz
+	 * @returns string
+	 * @param $file an UploadAnythingFile object or a class extending it
+	 * @param $relation one of self, single or gallery
+	 */
+	protected function GetFileListItem($file, UploadAnythingField $field) {
+		$html = "";
+		
+		$deletelink = $field->AdminLink('DeleteFile', $file->ID);
+		$editlink = $field->AdminLink('EditFile', $file->ID);
+		
+		$html .= "<div class=\"file-uploader-item\" rel=\"{$file->ID}\">";
+		
+		$html .= "<a class=\"cms-panel-link\" data-target-panel=\".cms-content\" href=\"{$editlink}\" title=\"" . htmlentities($file->Name, ENT_QUOTES) . "\">";
+		
+		//$html .= "<a href=\"{$editlink}\" class=\"editlink\" title=\"" . htmlentities($file->Name, ENT_QUOTES) . "\">";
+		
+		//$html .= "<a class=\"ss-ui-dialog-link\" href=\"{$editlink}\" title=\"" . htmlentities($file->Name, ENT_QUOTES) . "\">";
+		
+		
+		//try to create a thumb (if it is one)
+		$path = BASE_PATH . "/" . $file->Filename;
+		
+		$is_image = $file->IsImage($path);
+		
+		$thumb = "[no file found]";
+		
+		if(!file_exists($path)) {
+			$thumb = "<br />File does not exist<br />";
+		} else if($is_image) {
+			$tag = $file->Thumbnail($this->resize_method, $this->thumb_width, $this->thumb_height);
+			if($tag) {
+				$thumb = $tag;
+			} else {
+				$thumb = "<img src=\"" . SAPPHIRE_DIR . "/images/app_icons/image_32.gif\" width=\"24\" height=\"32\" alt=\"unknown image\" /><br />(no thumbnail)";
+			}
+		} else {
+			//TODO: get a nice file icon...
+			$thumb = UploadAnythingFile::GetFileIcon();
+		}
+		
+		$html .= "<div class=\"thumb\">{$thumb}</div>";
+		$html .= "<div class=\"caption\"><p>" . substr($file->Title, 0, 16)  . "</p></div>";
+		$html .= "</a>";
+		$html .= "<div class=\"tools ui-state-default\">";
+		$html .= "<a class=\"deletelink ui-icon btn-icon-decline\" href=\"{$deletelink}\"></a>";
+		$html .= "<img src=\"" . rtrim(Director::BaseURL(), "/") . "/display_anything/images/sort.png\" title=\"drag and drop to sort\" class=\"sortlink\" alt=\"drag and drop to sort\" />";
+		$html .= "</div>";
+		$html .= "</div>";
+		
+		return $html;
+	}
+	
+	/**
+	 * SortItem()
+	 * @note HTTP POST API to update sort order in a gallery, returns the number of sorted items
+	 * @note we don't plug into the ORM here to make for faster uploading
+	 * @return integer
+	 * @todo match against gallery, sanity checks on POST
+	 */
+	final public function SortItem() {
+		$success = 0;
+		if(!empty($_POST['items']) && is_array($_POST['items'])) {
+			foreach($_POST['items'] as $item) {
+				if(!empty($item['id'])) {
+					$sort = (isset($item['pos']) ? (int)$item['pos'] : 0);
+					//run a quick query and bypass the ORM
+					$query = "UPDATE \"File\" SET Sort = '" . Convert::raw2sql($sort) . "' WHERE ID = '" . Convert::raw2sql($item['id']) . "'";
+					print $query . "\n";
+					$result = DB::query($query);
+					if($result) {
+						$success++;
+					}
+				}
+			}
+		}
+		return $success;
+	}
+	
+	//subdirectory of ASSETS_PATH
+	public function GetUploadTargetLocation() {
+		return "display-anything/gallery/" .  ceil($this->ID / 1000) . "/" . $this->ID . "/";
 	}
 }
 ?>

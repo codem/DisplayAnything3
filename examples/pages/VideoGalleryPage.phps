@@ -18,7 +18,6 @@ class VideoGalleryPage extends Page {
 			'DisplayAnythingYouTubeGallery',
 			$this //related dataobject
 		);
-		$gallery->SetTargetLocation('videogallery');
 		$fields->addFieldToTab('Root.Content.Videos', $gallery);
 
 		return $fields;

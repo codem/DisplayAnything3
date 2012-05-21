@@ -2,7 +2,7 @@
 /**
  * UploadAnythingFile()
  * @note our file class, extends File and provides extra bits and bobs
- * @note DisplayAnythingFile extends this class and should be used instead, you can extends this class if you like to provide your own File functionality
+ * @note DisplayAnythingFile extends this class and should be instantiated
  */
 class UploadAnythingFile extends File {
 
@@ -28,6 +28,10 @@ class UploadAnythingFile extends File {
 		self::$configuration = $data;
 	}
 	
+	/**
+	 * @returns string
+	 * @note returns the link to an ExternalURL or the internal page link
+	 */
 	public function LinkToURL() {
 		if(!empty($this->ExternalURL)) {
 			return $this->ExternalURL;
@@ -85,6 +89,11 @@ class UploadAnythingFile extends File {
 		return $mimeType;
 	}
 	
+	/**
+	 * IsImage()
+	 * @returns boolean
+	 * @note determines if the File is an image
+	 */
 	public function IsImage($location = "") {
 		if($location == "") {
 			$location = $this->getFullPath();
@@ -288,10 +297,16 @@ class UploadAnythingFile extends File {
 	
 	// -- END IMAGE THUMBING
 	
+	/**
+	 * @note returns the URL to the original, unwatermarked file
+	 */
 	public function OriginalURL() {
 		return  $this->getURL();
 	}
 	
+	/**
+	 * @note a template method to use if you are associating a button  with the file, uses these cascaded field values
+	 */
 	public function LinkToText() {
 		if($this->CallToActionText != '') {
 			return $this->CallToActionText;
@@ -321,7 +336,6 @@ class UploadAnythingFile extends File {
 				}
 			}
 		} catch (Exception $e) {
-			return array();
 		}
 		return array_flip($mimetypes);
 	}
@@ -331,20 +345,19 @@ class UploadAnythingFile extends File {
 	 * @return object
 	 */
 	protected function FileReplacementField() {
-		$this->replace_use_self = FALSE;
-		if($this->replace_use_self) {
-			//use the XHR replace field
-			//this is highly experimental and won't work (just yet) - if you want to debug, set TRUE above
-			$replace = new UploadAnythingField($this, get_class($this), 'File');
-			$replace->show_help = FALSE;
-			$replace->SetMimeTypes($this->GetMimeTypes());
-		} else {
-			//standard file input - save handled in onBeforeWrite()
-			$sourceClass = $name = get_class($this);//replacing self
-			$replace = new UploadAnythingFileField("replace", "");
-		}
-		return $replace;
+		/*
+		$field = new DisplayAnythingGalleryField(
+					'ReplaceWith',//name
+					'Replace file with',//title
+					$this->Gallery() //relatedDataObject
+		);
+		$field->ReplaceCurrent($this)->OverwriteFile(TRUE)->SetMimeTypes($this->GetMimeTypes());
+		$field->show_help = FALSE;
+		return $field;
+		*/
+		return new FileField('ReplaceWith', 'Replace');
 	}
+	
 	
 	public function getCMSFields() {
 		
@@ -354,9 +367,10 @@ class UploadAnythingFile extends File {
 			'Root.FileInformation',
 			array(
 				new LiteralField('FilePathField', "<p class=\"message\">Editing {$this->Name} - {$this->Filename}</p>"),
-				new TextField('Title', 'Title of File', $this->Title),
-				new TextField('Caption', 'File Caption', $this->Caption),
-				new TextareaField('Description', 'File Description', $this->Description),
+				new TextField('Title', 'Title', $this->Title),
+				$this->FileReplacementField(),
+				new TextField('Caption', 'Caption', $this->Caption),
+				new TextareaField('Description', 'Description', $this->Description),
 			)
 		);
 		
@@ -372,9 +386,9 @@ class UploadAnythingFile extends File {
 			$warning = "<p>This file does not exist, it may have been deleted.</p>";
 		}
 		
-		$replace = $this->FileReplacementField();
-		
-		$fields->addFieldsToTab('Root.FilePreview', new FileField('dummy_field','dummy_field'));//dummy field to trigger the correct enctype, Form doesn't allow enctype to be manually set if the field is included in our literal field below
+		//TODO - remove
+		//dummy field to trigger the correct enctype, Form doesn't allow enctype to be manually set if the field is included in our literal field below
+		//$fields->addFieldsToTab('Root.FilePreview', new FileField('dummy_field','dummy_field'));
 		
 		$fields->addFieldsToTab(
 			'Root.FilePreview',
@@ -391,12 +405,11 @@ class UploadAnythingFile extends File {
 		<tr><th>Width</th><td>{$meta['width']}</td></tr>
 		<tr><th>Height</th><td>{$meta['height']}</td></tr>
 		<tr><th>Type</th><td>{$meta['mimetype']}</td></tr>
-		<tr class="replace"><th>Replace with</th><td class="field">{$replace->FieldHolder()}</td></tr>
 		<tr><th>Thumbnail</th><td>{$thumbnail}</td></tr>
 	</tbody>
 </table>
 HTML
-				)
+				),
 			)
 		);
 		
@@ -416,7 +429,7 @@ HTML
 		$fields->addFieldsToTab(
 			'Root.TemplateOptions',
 			array(
-				new UploadField('AlternateImage', 'Alternate Image (optional)'),
+				new FileField('AlternateImage', 'Alternate Image (optional)'),
 			)
 		);
 		
@@ -443,60 +456,12 @@ HTML
 		return $fields;
 	}
 	
+	/**
+	 * GetFileIcon()
+	 * @returns string
+	 */
 	public static function GetFileIcon($type = "") {
 		return "<img src=\"" . SAPPHIRE_DIR . "/images/app_icons/generic_32.gif\" width=\"24\" height=\"32\" alt=\"file icon\" />";
-	}
-	
-	/**
-	 * ReplaceFile()
-	 * @note replaces the current file on disk for this File object. Will trigger Upload() using an HTTP POST upload (_FILES method)
-	 * @throws Exception
-	 * @return boolean
-	 */
-	private function ReplaceFile() {
-		$key = "replace";
-		if(!empty($_FILES[$key]) && is_uploaded_file($_FILES[$key]['tmp_name'])) {
-			$field = new UploadAnythingField($this, get_class($this), 'File');
-			$field->SetMimeTypes($this->GetMimeTypes());
-			$field->SetFileKey($key);
-			$field->Replace();
-			$success = $field->Success();
-			if(!$success) {
-				$return = $field->GetReturnValue();
-				throw new Exception(isset($return['error']) ? $return['error'] : 'Unhandled Error');
-			} else {
-				return TRUE;
-			}
-		}
-		return FALSE;
-	}
-	
-	/**
-	 * onAfterWrite() handle post write actions, in our case it's possible replacing the file
-	 * @todo saveComplexTableField is being called here before this is being called, resulting in is_uploaded_file errors
-	 * @note maybe UploadAnythingField should not be a ComplexTableField ?
-	 */
-	public function onAfterWrite() {
-		parent::onAfterWrite();
-		try {
-			$this->ReplaceFile();
-		} catch (Exception $e) {
-			$valid = new ValidationResult();
-			$valid->error($e->getMessage());
-			throw new ValidationException($valid, $e->getMessage());
-			return FALSE;
-		}
-		return TRUE;
-	}
-	
-	
-	/**
-	 * getRequirementsForPopup()
-	 * @note provides CSS and JS requirements to the lightbox popup
-	 */
-	public function getRequirementsForPopup() {
-		UploadAnythingField::LoadScript();
-		UploadAnythingField::LoadAdminCSS();
 	}
 	
 }
