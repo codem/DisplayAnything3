@@ -42,7 +42,7 @@ class WatermarkedImage extends Image {
 					try {
 						$this->watermark_config();
 						if($this->can_watermark) {
-							$this->watermark(&$gd);
+							$this->watermark($gd);
 						}
 						$gd->writeTo(Director::baseFolder()."/" . $cacheFile);
 					} catch (Exception $e) {
