@@ -14,7 +14,7 @@ class DisplayAnythingGallery extends DataObject {
 		'Title' => 'varchar(255)',
 		'Description' => 'text',
 		'Visible' => 'boolean',
-		'GalleryFilePath' => 'varchar(255)',//where files in this gallery are stored on disk, if left empty, the field will automatically determine this
+		'GalleryFilePath' => 'varchar(255)',//currently unused - where files in this gallery are stored on disk, if left empty, the field will automatically determine this
 		'Migrated' => 'boolean',//this is set when the gallery migration is complete
 		//options for this gallery
 		'ExtraMimeTypes' => 'text',//list of extra mimetypes for this gallery
@@ -81,11 +81,11 @@ class DisplayAnythingGallery extends DataObject {
 		
 		$html .= "<div class=\"file-uploader-item\" rel=\"{$file->ID}\">";
 		
-		$html .= "<a class=\"cms-panel-link\" data-target-panel=\".cms-content\" href=\"{$editlink}\" title=\"" . htmlentities($file->Name, ENT_QUOTES) . "\">";
+		//$html .= "<a class=\"cms-panel-link\" data-target-panel=\".cms-content\" href=\"{$editlink}\" title=\"" . htmlentities($file->Name, ENT_QUOTES) . "\">";
 		
 		//$html .= "<a href=\"{$editlink}\" class=\"editlink\" title=\"" . htmlentities($file->Name, ENT_QUOTES) . "\">";
 		
-		//$html .= "<a class=\"ss-ui-dialog-link\" href=\"{$editlink}\" title=\"" . htmlentities($file->Name, ENT_QUOTES) . "\">";
+		$html .= "<a class=\"ss-ui-dialog-link editlink\" href=\"{$editlink}\" title=\"" . htmlentities($file->Name, ENT_QUOTES) . "\">";
 		
 		
 		//try to create a thumb (if it is one)
