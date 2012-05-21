@@ -169,30 +169,25 @@ UploadAnything.prototype = {
 				}
 			);
 		
-		/*
-		//edit items
+		
+		//edit items - bind some events to whereever the link loads
 		jQuery('.file-uploader-list .file-uploader-item a.editlink')
 			.live(
 				'click',
 				function(event) {
-					event.preventDefault();
-					var container = jQuery(this).parents('.file-uploader-item').children('.edit-container');
-					container.children('.errorinto').hide();
-					try {
-						container.children('.loadinto').load(
-							jQuery(this).attr('href'),
-							{},
+					var _self = this;
+					if(jQuery(this).hasClass('ss-ui-dialog-link')) {
+						jQuery('.ui-dialog .ui-dialog-titlebar-close, .ui-widget-overlay').one(
+							'click',
 							function() {
-								//jQuery(this).parent('.file-uploader-item').css('width')
+								//when these items are hit, trigger a reload
+								jQuery(_self).parents('.file-uploader').find('a.reload').trigger('click');
 							}
+							
 						);
-					} catch (e) {
-						container.children('.errorinto').show();
 					}
-					return false;
 				}
 			);
-		*/
 			
 		//edit gallery usage
 		jQuery('.display_anything_usage').find('select.usage_picker').change(
