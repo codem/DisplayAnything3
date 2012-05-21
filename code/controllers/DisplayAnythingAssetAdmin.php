@@ -21,11 +21,7 @@ class DisplayAnythingAssetAdmin extends Controller {
 			'',//title of the field
 			$this->gallery//related dataobject (a page, a dataobject)
 		);
-		
-		$allowed_mime_types = array_flip(explode(",", $this->gallery->Usage()->MimeTypes));
-		
-		$field->SetMimeTypes($allowed_mime_types);
-		
+		$field->SetMimeTypes();
 		return $field;
 		
 	}
