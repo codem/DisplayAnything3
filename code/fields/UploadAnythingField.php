@@ -145,13 +145,23 @@ abstract class UploadAnythingField extends GridField {
 		return $val;
 	}
 	
+	private function WebImageMimeTypes() {
+		return array(
+			'image/jpg' => 'jpg',
+			'image/jpeg' => 'jpg',
+			'image/png' => 'png',
+			'image/x-png' => 'png',//IE sometimes uploads older pre standardized PNG files as this mimetype. Another feather in its c(r)ap
+			'image/gif' => 'gif',
+			'image/pjpeg' => 'jpg',
+		);
+	}
+	
 	/**
 	 * SetMimeTypes()
 	 * @note by default we just allow images
-	 * @param $mimeTypes pass in key=>value pairs to override. The value is the file extension (e.g 'jpg' for image.jpg)
+	 * @param $mime_types pass in mimetype=>extension pairs to override or a string/of,mime/types
 	 * @note are you unsure about mimetypes ? http://www.google.com.au/search?q=mimetype%20list
-	 * @note So, why doesn't this use file extensions?
-	 * <blockquote>File Extensions are part of the file name and have no bearing on the contents of the file whatsoever. 'Detecting' file content by matching the characters after the last "." may provide a nice string to work with but in fact lulls the developer into a false sense of security.
+	 * <blockquote>So, why doesn't this use file extensions? File Extensions are part of the file name and have no bearing on the contents of the file whatsoever. 'Detecting' file content by matching the characters after the last "." may provide a nice string to work with but in fact lulls the developer into a false sense of security.
 	 		To test this, create a new PHP file, add '<?php print "I am PHP";?>' and save that file as 'image.gif' then upload it using an uploader that allows file Gif files. What happens when you browse to that file ?
 	 		UploadAnything requires your developer (or you) to provide it a map of allowed mimetypes. Keys are mimetypes, values are a short blurb about the file. By default it uses the standard mimetypes for JPG, GIF and PNG files.
 	 		If you are uploading a valid file and the UploadAnything MimeType checker is not allowing it, first determine it's mimetype and check against the whitelist you have provided. Some older software will save a file in older, non-standard formats.
@@ -160,26 +170,43 @@ abstract class UploadAnythingField extends GridField {
 	 		If you are using the DisplayAnything file gallery manager, the Usage tab provides a method of managing allowed file types on a per gallery basis.
 	 		</blockquote>
 	 */
-	final public function SetMimeTypes($mimeTypes = array()) {
-	
-		if(is_string($mimeTypes)) {
-			$mimeTypes = explode(",", trim($mimeTypes, ","));
+	final public function SetMimeTypes($mime_types = NULL) {
+		
+		//set from possible gallery usage
+		$usage = FALSE;
+		$this->allowed_file_types = array();
+		if(($gallery = $this->GetGalleryImplementation()) && ($usage = $gallery->Usage())) {
+			$mime_types = $usage->MimeTypes;
 		}
-	
-		if(empty($mimeTypes)) {
+		
+		if(is_string($mime_types)) {
+			$chars = DisplayAnythingGalleryUsage::splitterChars();
+			$mime_types = array_flip(preg_split("/[" . preg_quote($chars) . "]+/", trim($mime_types, $chars)));
+			if(!function_exists('loadMimeTypes')) {
+				require(FRAMEWORK_PATH . "/email/Mailer.php");
+			}
+			if($map = loadMimeTypes()) {
+				$web_image_mime_types = $this->WebImageMimeTypes();
+				foreach($mime_types as $mime_type=>$value) {
+					//framework/email/Mailer.php
+					$ext = array_search($mime_type, $map);
+					if($ext !== FALSE) {
+						$this->allowed_file_types[$mime_type] = $ext;
+					} else if(array_key_exists($mime_type, $web_image_mime_types)) {
+						//try from our web types
+						$this->allowed_file_types[$mime_type] = $web_image_mime_types[$mime_type];
+						
+					}
+				}
+			}
+		}
+		
+		//back to basics
+		if(empty($this->allowed_file_types)) {
 			//nothing set, assume image upload for starters
-			$this->allowed_file_types = array(
-				'image/jpg' => 'jpg',
-				'image/jpeg' => 'jpg',
-				'image/png' => 'png',
-				//IE sometimes uploads older pre standardized PNG files as this mimetype. Another feather in its cap
-				'image/x-png' => 'png',
-				'image/gif' => 'gif',
-				'image/pjpeg' => 'jpg',
-			);
-		} else {
-			$this->allowed_file_types = $mimeTypes;
+			$this->allowed_file_types = $this->WebImageMimeTypes();
 		}
+		
 		return $this;
 	}
 	
