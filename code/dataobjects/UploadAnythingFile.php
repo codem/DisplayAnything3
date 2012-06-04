@@ -358,6 +358,30 @@ class UploadAnythingFile extends File {
 		return new FileField('ReplaceWith', 'Replace');
 	}
 	
+	public function onBeforeWrite() {
+		parent::onBeforeWrite();
+		
+		//var_dump($_FILES);exit;
+		
+		if(!empty($_FILES['ReplaceWith'])) {
+			$upload = new Upload();
+			//TODO - validate the replacement
+			$result = $upload->loadIntoFile($_FILES['ReplaceWith'], $this);
+			if($result) {
+				unset($this->ReplaceWith);
+			}
+		}
+		
+		if(!empty($_FILES['AlternateImage'])) {
+			$upload = new Upload();
+			$image = new Image();
+			//TODO - validate the replacement
+			$result = $upload->loadIntoFile($_FILES['AlternateImage'], $image);
+			if($result) {
+				$this->AlternateImageID = $image->ID;
+			}
+		}
+	}
 	
 	public function getCMSFields() {
 		
@@ -371,45 +395,8 @@ class UploadAnythingFile extends File {
 				$this->FileReplacementField(),
 				new TextField('Caption', 'Caption', $this->Caption),
 				new TextareaField('Description', 'Description', $this->Description),
-			)
-		);
-		
-		$meta = $this->GetMeta();
-		
-		$thumbnail = $this->Thumbnail('SetWidth', 400);
-		if(empty($thumbnail)) {
-			$thumbnail = self::GetFileIcon();
-		}
-		
-		$warning = "";
-		if(!$meta['exists']) {
-			$warning = "<p>This file does not exist, it may have been deleted.</p>";
-		}
-		
-		//TODO - remove
-		//dummy field to trigger the correct enctype, Form doesn't allow enctype to be manually set if the field is included in our literal field below
-		//$fields->addFieldsToTab('Root.FilePreview', new FileField('dummy_field','dummy_field'));
-		
-		$fields->addFieldsToTab(
-			'Root.FilePreview',
-			array(
-				//and some meta
-				new LiteralField(
-					'FileMetaData',
-<<<HTML
-{$warning}
-<table class="uploadanythingfile_meta">
-	<tbody>
-		<tr><th>Name</th><td>{$meta['name']}</td></tr>
-		<tr><th>Size</th><td>{$meta['size']}</td></tr>
-		<tr><th>Width</th><td>{$meta['width']}</td></tr>
-		<tr><th>Height</th><td>{$meta['height']}</td></tr>
-		<tr><th>Type</th><td>{$meta['mimetype']}</td></tr>
-		<tr><th>Thumbnail</th><td>{$thumbnail}</td></tr>
-	</tbody>
-</table>
-HTML
-				),
+				new DropDownField('OwnerID','Who owns this file?', DataObject::get('Member')->map('ID','Name'), $this->OwnerID),
+				new FileField('AlternateImage', 'Optional Alternate Image'),
 			)
 		);
 		
@@ -426,17 +413,37 @@ HTML
 			)
 		);
 		
-		$fields->addFieldsToTab(
-			'Root.TemplateOptions',
-			array(
-				new FileField('AlternateImage', 'Alternate Image (optional)'),
-			)
-		);
+		$meta = $this->GetMeta();
+		
+		$thumbnail = $this->Thumbnail('SetWidth', 400);
+		if(empty($thumbnail)) {
+			$thumbnail = self::GetFileIcon();
+		}
+		
+		$warning = "";
+		if(!$meta['exists']) {
+			$warning = "<p>This file does not exist, it may have been deleted.</p>";
+		}
 		
 		$fields->addFieldsToTab(
-			'Root.Ownership',
+			'Root.FilePreview',
 			array(
-				new DropDownField('OwnerID','Who owns this file?', DataObject::get('Member')->map('ID','Name'), $this->OwnerID)
+				//and some meta
+				new LiteralField(
+					'FileMetaData',
+<<<HTML
+{$warning}
+<table class="uploadanythingfile_meta">
+	<tbody>
+		<tr><th>Name</th><td>{$meta['name']}</td></tr>
+		<tr><th>Size</th><td>{$meta['size']}</td></tr>
+		<tr><th>Dimensions (WxH)</th><td>{$meta['width']} x {$meta['height']}</td></tr>
+		<tr><th>Type</th><td>{$meta['mimetype']}</td></tr>
+		<tr><th>Thumbnail</th><td>{$thumbnail}</td></tr>
+	</tbody>
+</table>
+HTML
+				),
 			)
 		);
 		

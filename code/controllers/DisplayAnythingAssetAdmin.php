@@ -11,6 +11,20 @@ class DisplayAnythingAssetAdmin extends Controller {
 	
 	static $menu_title = 'Gallery File';
 	
+	public static $url_handlers = array(
+		'$Action/$ID/field/$OtherID' => 'FieldAction',//specific field actions on the EditForm
+	);
+	
+	/** 
+	 * handle specific field actions and reroute to EditForm::Field based on OtherID passed in (routed by self::url_handlers)
+	 */
+	public function FieldAction(SS_HTTPRequest $request) {
+		$this->handlePopulate($request);
+		$field = $this->handlerField($request);
+		$form = $field->EditForm($this->gallery_item, $this);
+		return $form->Fields()->dataFieldByName($request->param('OtherID'));
+	}
+	
 	private function handlerField(SS_HTTPRequest $request) {
 		if(!$this->gallery) {
 			throw new Exception("The associated gallery cannot be found");
@@ -25,19 +39,41 @@ class DisplayAnythingAssetAdmin extends Controller {
 		return $field;
 		
 	}
+	
+	private function handlePopulate(SS_HTTPRequest $request) {
+		$this->gallery_item = DataObject::get_one('DisplayAnythingFile', "\"DisplayAnythingFile\".\"ID\"='" . Convert::raw2sql($request->param('ID')) . "'");
+		if(empty($this->gallery_item->ID)) {
+			throw new Exception("Item not found");
+		}
+		$this->gallery = DataObject::get_one('DisplayAnythingGallery', "\"DisplayAnythingGallery\".\"ID\"='" . Convert::raw2sql($this->gallery_item->GalleryID) . "'");
+	}
 
 	//single gallery item actions
 	public function EditFile(SS_HTTPRequest $request) {
 		try {
 		
-			$this->gallery_item = DataObject::get_one('DisplayAnythingFile', "\"DisplayAnythingFile\".\"ID\"='" . Convert::raw2sql($request->param('ID')) . "'");
-			
-			$this->gallery = DataObject::get_one('DisplayAnythingGallery', "\"DisplayAnythingGallery\".\"ID\"='" . Convert::raw2sql($this->gallery_item->GalleryID) . "'");
+			$this->handlePopulate($request);
 			
 			$field = $this->handlerField($request);
 			
-			return $field->EditForm($this->gallery_item, $this);
+			$form = $field->EditForm($this->gallery_item, $this);
 			
+			if($request->isPOST()) {
+				try {
+					$record = $request->postVars();
+					$this->gallery_item->castedUpdate($record);
+					$this->gallery_item->write();
+					$form->sessionMessage('Saved ;)','good');
+				} catch (Exception $e) {
+					$form->sessionMessage('Failed to save','bad');
+				}
+				return $this->redirect($request->getURL());
+			} else {
+				$result = $this->customise(array(
+					'Form' => $form
+				))->renderWith('UploadAnythingFileEdit');
+				return $result;
+			}
 		} catch (Exception $e) {
 			//print "Failed : {$e->getMessage()}\n";
 		}
@@ -46,19 +82,16 @@ class DisplayAnythingAssetAdmin extends Controller {
 	
 	public function DeleteFile(SS_HTTPRequest $request) {
 		try {
-		
-			$this->gallery_item = DataObject::get_one('DisplayAnythingFile', "\"DisplayAnythingFile\".\"ID\"='" . Convert::raw2sql($request->param('ID')) . "'");
+			$this->handlePopulate($request);
 			
-			$this->gallery = DataObject::get_one('DisplayAnythingGallery', "\"DisplayAnythingGallery\".\"ID\"='" . Convert::raw2sql($this->gallery_item->GalleryID) . "'");
+			$result = $this->gallery_item->delete();
 			
-			$field = $this->handlerField($request);
-			
-			return $field->EditForm($this->gallery_item, $this);
+			return $result ? 0 : 1;
 			
 		} catch (Exception $e) {
 			//print "Failed : {$e->getMessage()}\n";
 		}
-		return "<p>The file requested does not exist</p>";
+		return 0;
 	}
 	
 	//gallery actions
