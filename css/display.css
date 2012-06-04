@@ -8,6 +8,9 @@
 .file-uploader {
 	background-color : transparent;
 	padding : 0;
+	position : relative;
+	top : 0;
+	left: 0;
 }
 
 .file-uploader ul li {
@@ -52,10 +55,15 @@ form .file-uploader .field .help {
 	padding : 0;
 	clear : both;
 	font-style : normal;
+	width : 390px;
+	position : absolute;
+	left : 270px;
+	top : 0;
 }
 
 form .file-uploader .field .help-under {
 	padding-top : 12px;
+	position :static;
 }
 
 form .file-uploader .field .inner {
@@ -119,10 +127,11 @@ form .file-uploader .help h4 {
 
 .file-uploader .qq-upload-button {
 	width : auto;
+	clear : both;
 	font-size : 16px;
 	text-align: center;
 	cursor: default;
-	padding: 16px;
+	padding: 50px 16px;
 	color : #444;
 	font-weight : bold;
 	/**
@@ -137,9 +146,9 @@ form .file-uploader .help h4 {
 }
 
 .file-uploader .uploadanything-upload-box {
-	width : 100%;
-	float : none;
-	margin : 0 0 8px 0;
+	float : left;
+	width : 260px;
+	margin : 0 0 8px 0px;
 	padding : 0 0 7px 0;
 }
 
@@ -184,15 +193,16 @@ form .file-uploader .help h4 {
 }
 
 .file-uploader-list {
-	margin : 1px 0;
-	padding : 3px 0px 7px 0;
+	margin : 0;
+	padding : 0;
+	clear : both;
 }
 
 .file-uploader-list .file-uploader-item {
-	width : 120px;
-	border : 1px solid #666;
+	width : 122px;
+	border : none;
 	background-color : #fff;
-	padding : 3px;
+	padding : 1px;
 	overflow : hidden;
 	text-align : center;
 	display : inline-block;
@@ -201,7 +211,7 @@ form .file-uploader .help h4 {
 	margin : 0 4px 4px 0;
 	-moz-box-shadow: 2px 2px 5px rgba(123,123,123,0.3);
 	-webkit-box-shadow: 2px 2px 5px rgba(123,123,123,0.3);
-	box-shadow: 2px 2px 5px rgba(123,123,123,0.3);
+	box-shadow: 1px 1px 2px rgba(123,123,123,0.5);
 }
 
 .file-uploader-list .file-uploader-item a.editlink {
@@ -209,7 +219,7 @@ form .file-uploader .help h4 {
 }
 
 .file-uploader-list .file-uploader-item .thumb {
-	height : 60px;
+	height : 120px;
 	overflow : hidden;
 }
 
