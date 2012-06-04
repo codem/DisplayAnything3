@@ -181,11 +181,11 @@ abstract class UploadAnythingField extends GridField {
 		
 		if(is_string($mime_types)) {
 			$chars = DisplayAnythingGalleryUsage::splitterChars();
+			
+			//allowed
 			$mime_types = array_flip(preg_split("/[" . preg_quote($chars) . "]+/", trim($mime_types, $chars)));
-			if(!function_exists('loadMimeTypes')) {
-				require(FRAMEWORK_PATH . "/email/Mailer.php");
-			}
-			if($map = loadMimeTypes()) {
+			
+			if($map = Config::inst()->get('HTTP', 'MimeTypes')) {
 				$web_image_mime_types = $this->WebImageMimeTypes();
 				foreach($mime_types as $mime_type=>$value) {
 					//framework/email/Mailer.php
@@ -701,17 +701,15 @@ HTML;
 					$actions,
 					$validator
 				);
-				$form->loadDataFrom($this);
+				$form->loadDataFrom($file);
 				
-				$result =  $this->customise(array(
-					'Form' => $form
-				))->renderWith('UploadAnythingFileEdit');
+				$form->setFormAction($this->AdminLink('EditFile', $file->ID));
 				
-				return $result;
+				return $form;
 			}
 		} catch (Exception $e) {
 		}
-		return 0;
+		return "";
 	}
 	
 	/**
