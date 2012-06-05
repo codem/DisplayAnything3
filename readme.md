@@ -18,7 +18,7 @@ To assist with version identification this module will be versioned the same as 
 <ul>
 <li>New admin asset controller ;)</li>
 <li>Refactored the gallery field to make it 3.0-ish</li>
-<li>Removed single file handling, you can have a gallery with one file instead<li>
+<li>Removed single file handling, you can have a gallery with one file instead</li>
 <li>Compat. with 3.0b2 to 3.0b3 API changes</li>
 </ul>
 
@@ -41,7 +41,7 @@ To assist with version identification this module will be versioned the same as 
 <ul>
 <li>Replace and Alternate Image could be rather shaky</li>
 <li>Reload link on an empty gallery removes the initial 'no files have been associated'</li>
-<li>We'd like the edit gallery item for to open in a CMS panel, not a popup box<li>
+<li>We'd like the edit gallery item for to open in a CMS panel, not a popup box</li>
 <li>Translations</li>
 <li>Insert Internet Explorer line here</li>
 </ul>
@@ -66,7 +66,7 @@ If you find a bug we'd like to know about it. Please use the Github issue tracke
 	<br />In all cases the module source code should be located in a directory called 'display_anything'
 </li>
 <li>run /dev/build (admin privileges required) and possibly a ?flush=1</li>
-<li>implement in the CMS (see 'CMS' below)</li>
+<li>implement in the CMS - see the 'examples' directory in the source</li>
 <li>log into the CMS and start editing</li>
 </ol>
 
@@ -80,14 +80,14 @@ You can choose a albums from the list of album(s) provided and save the page, su
 Once migration is complete you can remove the Image Gallery module as and when you wish.
 
 ## CMS implementation ##
-View the <a href="./DisplayAnything3/examples">example directory</a> for some sample page, dataobject and template implementations.
+View the <a href="./DisplayAnything3/tree/master/examples">example directory</a> for some sample page, dataobject and template implementations.
 
 ## Templates ##
 Innumerable gallery plugins with varying licenses exist for image & file lists and viewing of images in a lightbox (Fancybox is good and open source).
 
 By design, DisplayAnything avoids being a kitchen sink, stays light and does not bundle any of these plugins. It's up to you to implement the gallery the way you want it (this saves you having to undo & override any defaults DisplayAnything may set).
 
-View the <a href="./DisplayAnything3/examples/templates">example directory</a> for some sample layouts related to the pages in the examples section.
+View the <a href="./DisplayAnything3/tree/master/examples/templates">example directory</a> for some sample layouts related to the pages in the examples section.
 
 ### Ordered Gallery Items ###
 You can implement ordered galleries in your frontend template to match yours or someone else's drag and drop admin work on the Gallery. Simply change "GalleryItems" to "OrderedGalleryItems" in the template example above.
