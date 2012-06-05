@@ -90,7 +90,7 @@ By design, DisplayAnything avoids being a kitchen sink, stays light and does not
 View the <a href="./DisplayAnything3/tree/master/examples/templates">example directory</a> for some sample layouts related to the pages in the examples section.
 
 ### Ordered Gallery Items ###
-You can implement ordered galleries in your frontend template to match yours or someone else's drag and drop admin work on the Gallery. Simply change "GalleryItems" to "OrderedGalleryItems" in the template example above.
+You can implement ordered galleries in your frontend template to match yours or someone else's drag and drop admin work on the Gallery. Simply change "GalleryItems" to "OrderedGalleryItems" in the template.
 
 ## Watermarking ##
 To implement watermarking, use the following image template/html snippet within your gallery control:
