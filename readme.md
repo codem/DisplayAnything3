@@ -40,6 +40,8 @@ To assist with version identification this module will be versioned the same as 
 ## TODO / Known issues ###
 <ul>
 <li>Replace and Alternate Image could be rather shaky</li>
+<li>Reload link on an empty gallery removes the initial 'no files have been associated'</li>
+<li>We'd like the edit gallery item for to open in a CMS panel, not a popup box<li>
 </ul>
 
 ## Installing ##
