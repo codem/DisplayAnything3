@@ -9,7 +9,7 @@ This module is only compatible with <a href="http://www.silverstripe.org/silvers
 The module in action - A CMS view of a gallery associated with a page.
 
 ## State ##
-This is an fork of <a href="http://github.com/codem/displayanything">DisplayAnything</a> for SilverStripe 3.0b3.
+This is a fork of <a href="http://github.com/codem/displayanything">DisplayAnything</a> for SilverStripe 3.0b3.
 
 Note: Don't expect it to work consistently in a production environment. It may eat your files or worse. Backup your files if you are testing.
 
@@ -20,7 +20,7 @@ To assist with version identification this module will be versioned the same as 
 ## Changes ##
 <ul>
 <li>New admin asset controller ;)</li>
-<li>Refactored the gallery field to make it 3.0-ish</li>
+<li>Refactored the gallery field CSS to make it 3.0-ish</li>
 <li>Removed single file handling, you can have a gallery with one file instead</li>
 <li>Compat. with 3.0b2 to 3.0b3 API changes</li>
 </ul>
