@@ -54,7 +54,7 @@ class DisplayAnythingGalleryField extends UploadAnythingField {
 		$gallery = $this->GetGalleryImplementation();
 		$list = $gallery->GetFileList($this);
 		if(empty($list)) {
-			$list = "<div class=\"file-uploader-item\"><p>No files have been associated yet...</p></div>";
+			$list = "<div class=\"file-uploader-item\"><p class=\"nada\">No files have been associated yet...</p></div>";
 		}
 		$html = "<div class=\"file-uploader-list field\">{$list}</div>";
 		if($this->show_help) {
