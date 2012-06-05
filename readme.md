@@ -1,14 +1,14 @@
-# DisplayAnything 3.0b2 AKA 'nearly there' #
+# DisplayAnything 3.0b3 AKA 'jump in and test' #
 
 ## About ##
-A file and image gallery module for Silverstripe 3.0b2, forked from <a href="http://github.com/codem/displayanything">DisplayAnything</a>.
+A file and image gallery module for Silverstripe 3.0b3, forked from <a href="http://github.com/codem/displayanything">DisplayAnything</a>.
 
-This module is only compatible with <a href="http://www.silverstripe.org/silverstripe-3-beta-2/">the Silverstripe 3.0b2 release</a>.
+This module is only compatible with <a href="http://www.silverstripe.org/silverstripe-3.0-beta-3-fewer-tabs-more-awesome/">the Silverstripe 3.0b3 release</a>.
 
 ## State ##
-This is a ~~highly~~ moderately experimental fork of <a href="http://github.com/codem/displayanything">DisplayAnything</a> based on SilverStripe 3.0b2.
+This is an fork of <a href="http://github.com/codem/displayanything">DisplayAnything</a> for SilverStripe 3.0b3.
 
-Don't expect it to work consistently in a production environment. It may eat your files or worse. Backup your files if you are testing.
+Note: Don't expect it to work consistently in a production environment. It may eat your files or worse. Backup your files if you are testing.
 
 If you would like to contribute to the development of this module, please fork it and hack away. If you would like to use a spiffy multi-file uploader and gallery module in SilverStripe 2.4.x, please look at <a href="http://github.com/codem/displayanything">DisplayAnything</a>.
 
@@ -16,9 +16,16 @@ To assist with version identification this module will be versioned the same as 
 
 ## Changes ##
 <ul>
+<li>New admin asset controller ;)</li>
+<li>Refactored the gallery field to make it 3.0-ish</li>
+<li>Removed single file handling, you can have a gallery with one file instead<li>
+<li>Compat. with 3.0b2 to 3.0b3 API changes</li>
+</ul>
+
+## Changes 2.4 -> 3.0 ##
+<ul>
 <li>The field now extends GridField rather than ComplexTableField</li>
 <li>Updated JS upload handling to bind on new CMS events</li>
-<li>Worked through deprecation notices to get compatibility with method changes between 3.0a2 and 3.0b2</li>
 <li>Remove 2.4 JS handlers such as lightbox loading</li>
 <li>Update drop zone styles to match UploadField</li>
 <li>General CSS updates</li>
@@ -32,15 +39,12 @@ To assist with version identification this module will be versioned the same as 
 
 ## TODO / Known issues ###
 <ul>
-<li>File edit link currently hits up the asset admin, we'd rather this went to a specific view to remain in gallery context (fork and hack if you want to help with this. Hint:FileEditorLink())</li>
-<li>Drop support for single file UploadAnythingField, this will become an abstract class, use UploadField instead</li>
-<li>General testing as required</li>
+<li>Replace and Alternate Image could be rather shaky</li>
 </ul>
-
 
 ## Installing ##
 <ol>
-<li>Download and <a href="http://www.silverstripe.org/silverstripe-3-0-alpha-2-is-here/">install SilverStripe 3.0b2</a></li>
+<li>Download and <a href="http://www.silverstripe.org/pre-releases/">install SilverStripe 3.0b3</a></li>
 <li>cd /path/to/your/silverstripe/site</li>
 <li>Grab the source:
 	<dl>
@@ -108,7 +112,7 @@ Use the following in your site config:
 + WatermarkedImageDecorator decorates Image
 
 ## Support ##
-+ No support is available for this version of DisplayAnything. The intended audience is developers who want to hack away and get it working alongside SS3 releases.
++ If you find a bug we'd like to know about it. Please use the Github issue tracker.
 
 ## Licenses ##
 DisplayAnything is licensed under the Modified BSD License (refer license.txt)

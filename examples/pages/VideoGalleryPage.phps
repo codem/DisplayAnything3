@@ -1,7 +1,7 @@
 <?php
 /**
  * VideoGalleryPage
- * @note this is an example Video Gallery page, it contains one DisplayAnythingYouTubeGallery relation. It's main goal is to illustrate how you can extend the base class to add extra functionality
+ * @note this is an example Video Gallery page, it contains one DisplayAnythingYouTubeGallery relation. Its main goal is to illustrate how you can extend the base class to add extra functionality
  */
 class VideoGalleryPage extends Page {
 

@@ -1,4 +1,4 @@
-# DisplayAnything - Examples #
+# DisplayAnything3 - Examples #
 
 These files provide some example implementations for associating a gallery or upload field with a page or dataobject. It also provides some example templates.
 
