@@ -42,7 +42,13 @@ To assist with version identification this module will be versioned the same as 
 <li>Replace and Alternate Image could be rather shaky</li>
 <li>Reload link on an empty gallery removes the initial 'no files have been associated'</li>
 <li>We'd like the edit gallery item for to open in a CMS panel, not a popup box<li>
+<li>Translations</li>
+<li>Insert Internet Explorer line here</li>
 </ul>
+
+## Got a bug? ##
+
+If you find a bug we'd like to know about it. Please use the Github issue tracker. Please provide the browser name and version plus a description of what is happening so that we can reproduce any issues fast.
 
 ## Installing ##
 <ol>
@@ -112,9 +118,6 @@ Use the following in your site config:
 + The watermark source image is not resized
 + The original image is not watermarked
 + WatermarkedImageDecorator decorates Image
-
-## Support ##
-+ If you find a bug we'd like to know about it. Please use the Github issue tracker.
 
 ## Licenses ##
 DisplayAnything is licensed under the Modified BSD License (refer license.txt)
