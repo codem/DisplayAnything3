@@ -5,7 +5,7 @@ A file and image gallery module for Silverstripe 3.0b3, forked from <a href="htt
 
 This module is only compatible with <a href="http://www.silverstripe.org/silverstripe-3.0-beta-3-fewer-tabs-more-awesome/">the Silverstripe 3.0b3 release</a>.
 
-<img src="./DisplayAnything3/raw/master/examples/readme.png" width="300" />
+<img src="./DisplayAnything3/raw/master/examples/readme.png" width="800" style="display:block;margin: 0 auto;" />
 The module in action - A CMS view of a gallery associated with a page.
 
 ## State ##
