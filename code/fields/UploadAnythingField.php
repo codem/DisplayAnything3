@@ -86,7 +86,7 @@ abstract class UploadAnythingField extends GridField {
 	 * @todo permissions around obtaining this link (e.g frontend)
 	 */
 	public function AdminLink($action, $id) {
-		return Controller::join_links('/admin/da', $action, $id);
+		return Controller::join_links(Director::BaseURL(), '/admin/da', $action, $id);
 	}
 	
 	/**
