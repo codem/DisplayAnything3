@@ -24,6 +24,7 @@
 			<li>$_REQUEST not used</li>
 		</ul>
  * @note that file extensions are not used, except for basic client side validation.
+ * @todo use bundled jQuery uploader
  */
 class DisplayAnythingGalleryField extends FormField {
 	
@@ -88,13 +89,6 @@ class DisplayAnythingGalleryField extends FormField {
 	}
 
 	/**
-	 * @returns DataList
-	 */
-	private function GetGalleryItems() {
-		return $this->GetGalleryImplementation()->OrderedGalleryItems(FALSE);
-	}
-
-	/**
 	 * @returns string
 	 */
 	protected function GetAllowedFilesNote() {
@@ -118,20 +112,25 @@ class DisplayAnythingGalleryField extends FormField {
 		$list = $gallery->GetFileList();
 		$html = "<div class=\"file-uploader-list field\">{$list}</div>";
 		if($this->show_help) {
-			$html .= "<div class=\"help help-under\"><div class=\"inner\">"
+			$html .= $this->FieldHelp();
+		}
+		return $html;
+	}
+	
+	protected function FieldHelp() {
+		return "<div class=\"help help-under\"><div class=\"inner\">"
 					. " <h4>Upload help</h4><ul>"
 					. " <li><strong>Chrome</strong>, <strong>Safari</strong> and <strong>Firefox</strong> support multiple image upload (Hint: 'Ctrl/Cmd + click' to select multiple images in your file chooser)</li>"
-					. "<li>In <strong>Firefox</strong>, Safari and <strong>Chrome</strong> you can drag and drop images onto the upload button</li>"
+					. "<li>In <strong>Firefox</strong>, <strong>Safari</strong> and <strong>Chrome</strong> you can drag and drop images onto the upload button</li>"
 					. "<li>Internet Explorer <= 9 does not support multiple file uploads or drag and drop of files. Click the 'Upload a file' button to choose a file.</li>"
 					. "</ul>"
 					. "</div></div>";
-		}
-		return $html;
 	}
 	
 	/**
 	 * Field()
 	 * @note just returns the field. Note that the FileUploader.js handles all the HTML machinations, we just provide a container
+	 * @param $properties
 	 */
 	public function Field($properties = array()) {
 		$id = $this->id();
@@ -211,6 +210,8 @@ class DisplayAnythingGalleryField extends FormField {
 			$resort = DisplayAnythingAssetAdmin::AdminLink('SortItem', $gallery->ID);
 			
 			$Title = (!empty($gallery->Title) ? $gallery->Title : "Un-named gallery");
+			$Description = (!empty($gallery->Title) ? $gallery->Description : "No description provided");
+			$Visible = $gallery->Visible == 1 ? "public" : "private";
 			$Message = $this->XML_val('Message');
 			$MessageType = $this->XML_val('MessageType');
 			$RightTitle = $this->XML_val('RightTitle');
@@ -221,11 +222,12 @@ class DisplayAnythingGalleryField extends FormField {
 			
 			// Only of the the following titles should apply
 			$titleBlock = "<div class=\"help\"><div class=\"inner\">";
-			$titleBlock .= "<h4>{$Title}</h4>";
+			$titleBlock .= "<h4>" . htmlentities($Title, ENT_QUOTES, 'UTF-8') . " <span>(" . $Visible  . ")</span></h4>";
+			$titleBlock .= ($Description ? "<p>" . htmlentities($Description, ENT_QUOTES, 'UTF-8') . "</p>" : "");
 			$titleBlock .= "<label class=\"left\" for=\"{$this->id()}\">";
 			$titleBlock .= "<ul><li><a href=\"{$reload}\" class=\"reload reload-all\">Reload</a><a class=\"sortlink\" href=\"{$resort}\">sort</a></li>";
-			$titleBlock .= "<li><span>Max. file size: " . round($gallery->GetMaxSize() / 1024 / 1024, 2) . "Mb</span></li>";
-			$titleBlock .= "<li><span>File types: " . $this->GetAllowedFilesNote() . "</span></li></ul>";
+			$titleBlock .= "<li><span><strong>Max. file size:</strong> " . round($gallery->GetMaxSize() / 1024 / 1024, 2) . "Mb</span></li>";
+			$titleBlock .= "<li><span><strong>File types:</strong> " . $this->GetAllowedFilesNote() . "</span></li></ul>";
 			$titleBlock .= "</label></div></div>";
 			
 			// $MessageType is also used in {@link extraClass()} with a "holder-" prefix
@@ -245,7 +247,7 @@ class DisplayAnythingGalleryField extends FormField {
 </div>
 HTML;
 		} else {
-			$html .= "<div class=\"message\"><p>Gallery items can be uploaded after the gallery is saved for the first time</p></div>";
+			$html .= "<div class=\"message notice\"><p>Gallery items can be uploaded after the gallery is saved for the first time</p></div>";
 		}
 		$html .= "</div>";
 		
