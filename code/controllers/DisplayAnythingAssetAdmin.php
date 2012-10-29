@@ -131,14 +131,30 @@ class DisplayAnythingAssetAdmin extends Controller {
 	 * Upload()
 	 * @note upload a file into the gallery
 	 * @param $request
-	 * @todo should this be moved out of the Field and into this controller
 	 */
 	public function Upload(SS_HTTPRequest $request) {
+		$result = 0;
 		try {
 			$this->gallery = DataObject::get_one('DisplayAnythingGallery', "\"DisplayAnythingGallery\".\"ID\"='" . Convert::raw2sql($request->param('ID')) . "'");
-			print $this->gallery->Upload();
+			
+			//configuration for this gallery
+			
+			//always required
+			$this->gallery->SetMimeTypes();
+			
+			/**
+			$this->gallery
+				->SetTargetLocation($path)
+				->SetFileKey($key)
+				->SetPermission($file, $directory)
+				->OverwriteFile(TRUE | FALSE);
+			*/
+			//handle upload
+			$result = $this->gallery->Upload();
 		} catch (Exception $e) {
+			$result = 0;
 		}
+		print $result;
 		exit;
 	}
 
