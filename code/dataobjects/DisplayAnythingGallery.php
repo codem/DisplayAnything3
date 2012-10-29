@@ -14,8 +14,8 @@ class DisplayAnythingGallery extends DataObject {
 	
 	//default file and directory permissions
 	//if your web server runs as a specific user, these can be altered to make the rw for only that user
-	public $file_permission = 0644;//0600 - only by the user and root
-	public $directory_permission = 0755;//0700 - only by the user and root
+	public $file_permission = 0640;//0600 - only by the user and root
+	public $directory_permission = 0750;//0700 - only by the user and root
 	
 	private $upload_handler;
 	private $fileKey = 'qqfile';
@@ -201,17 +201,6 @@ class DisplayAnythingGallery extends DataObject {
 	}
 	
 	/**
-	 * SetPermissions()
-	 * @note allows you to set permissions for file and directory creation
-	 * @returns DisplayAnythingGallery
-	 */
-	public function SetPermissions($file = 0644, $directory = 0755) {
-		$this->file_permission = $file;
-		$this->directory_permission = $directory;
-		return $this;
-	}
-	
-	/**
 	 * @returns octal
 	 * @note returns file permission
 	 */
@@ -225,17 +214,6 @@ class DisplayAnythingGallery extends DataObject {
 	 */
 	public function GetDirectoryPermission() {
 		return $this->directory_permission;
-	}
-	
-	/**
-	 * SetTargetLocation()
-	 * @param $location a subdirectory of the SS ASSETS_PATH
-	 * @note doesn't have to exist just yet as the uploader will create it
-	 * @returns DisplayAnythingGallery
-	 */
-	final public function SetTargetLocation($location) {
-		$this->target_location = $location;
-		return $this;
 	}
 	
 	/**
@@ -253,19 +231,6 @@ class DisplayAnythingGallery extends DataObject {
 		} else {
 			throw new Exception("No upload handler was defined for this request");
 		}
-	}
-	
-	/**
-	 * SetFileKey()
-	 * @note allow override of filekey used in upload, allows file replacement to hook into Upload()
-	 * @returns DisplayAnythingGallery
-	 */
-	public function SetFileKey($fileKey) {
-		if($fileKey == '') {
-			throw new Exception("File key cannot be empty");
-		}
-		$this->fileKey = $fileKey;
-		return $this;
 	}
 	
 	/**
@@ -383,6 +348,8 @@ class DisplayAnythingGallery extends DataObject {
 		);
 	}
 	
+	// -- START CONFIG
+	
 	/**
 	 * SetMimeTypes()
 	 * @note by default we just allow images
@@ -428,7 +395,7 @@ class DisplayAnythingGallery extends DataObject {
 			}
 		}
 		
-		//back to basics
+		//fall back to basics
 		if(empty($this->allowed_file_types)) {
 			//nothing set, assume image upload for starters
 			$this->allowed_file_types = $this->WebImageMimeTypes();
@@ -438,14 +405,53 @@ class DisplayAnythingGallery extends DataObject {
 	}
 	
 	/**
+	 * SetTargetLocation()
+	 * @param $location a subdirectory of the SS ASSETS_PATH
+	 * @note this is optional, if not set the Gallery will determine the path (and is recommended to leave it this way)
+	 * @returns DisplayAnythingGallery
+	 */
+	final public function SetTargetLocation($location) {
+		$this->target_location = $location;
+		return $this;
+	}
+	
+	/**
+	 * SetFileKey()
+	 * @note allow override of filekey used in upload, allows file replacement to hook into Upload()
+	 * @note optional, will default to the property setting
+	 * @returns DisplayAnythingGallery
+	 */
+	public function SetFileKey($fileKey) {
+		if($fileKey == '') {
+			throw new Exception("File key cannot be empty");
+		}
+		$this->fileKey = $fileKey;
+		return $this;
+	}
+	
+	/**
+	 * SetPermissions()
+	 * @note allows you to set permissions for file and directory creation
+	 * @returns DisplayAnythingGallery
+	 */
+	public function SetPermissions($file = 0640, $directory = 0750) {
+		$this->file_permission = $file;
+		$this->directory_permission = $directory;
+		return $this;
+	}
+	
+	/**
 	 * OverwriteFile()
 	 * @note sets the file field to overwrite if a same-named file is found, this is a configuration item that returns this field to enable chainable setups
 	 * @returns DisplayAnythingGallery
+	 * @todo retrieve setting from Usage
 	 */
 	final public function OverwriteFile($replace = FALSE) {
 		$this->overwrite_file = $replace;
 		return $this;
 	}
+	
+	//--- END CONFIG
 	
 	/**
 	 * GetFileName()
