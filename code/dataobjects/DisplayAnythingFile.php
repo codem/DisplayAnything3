@@ -391,10 +391,12 @@ class DisplayAnythingFile extends File {
 		
 		$fields = parent::getCMSFields();
 		
+		$path = Controller::join_links(BASE_URL, $this->Filename);
+		
 		$fields->addFieldsToTab(
 			'Root.FileInformation',
 			array(
-				new LiteralField('FilePathField', "<p class=\"message\">Editing {$this->Name} - {$this->Filename}</p>"),
+				new ReadonlyField('FilePathField', "Path",  $path),
 				new TextField('Title', 'Title', $this->Title),
 				$this->FileReplacementField(),
 				new TextField('Caption', 'Caption', $this->Caption),
