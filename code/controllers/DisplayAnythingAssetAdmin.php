@@ -1,19 +1,18 @@
 <?php
 /**
  * DisplayAnythingAssetAdmin()
- * @note controller for single file related actions
  */
 class DisplayAnythingAssetAdmin extends Controller {
 
 	private $gallery_item, $gallery;
 	
-	static $url_segment = 'galleryfile';//gooms this url segment  ?
-	
-	static $menu_title = 'Gallery File';
-	
 	public static $url_handlers = array(
 		'$Action/$ID/field/$OtherID' => 'FieldAction',//specific field actions on the EditForm
 	);
+	
+	public function __construct() {
+		parent::__construct();
+	}
 	
 	/** 
 	 * handle specific field actions and reroute to EditForm::Field based on OtherID passed in (routed by self::url_handlers)
@@ -29,15 +28,7 @@ class DisplayAnythingAssetAdmin extends Controller {
 		if(!$this->gallery) {
 			throw new Exception("The associated gallery cannot be found");
 		}
-		
-		$field = new DisplayAnythingGalleryField(
-			'DisplayAnythingAdminBackend',//name of the field
-			'',//title of the field
-			$this->gallery//related dataobject (a page, a dataobject)
-		);
-		$field->SetMimeTypes();
-		return $field;
-		
+		return new DisplayAnythingGalleryField('DisplayAnythingAdminBackend', '', $this->gallery);
 	}
 	
 	private function handlePopulate(SS_HTTPRequest $request) {
@@ -79,48 +70,76 @@ class DisplayAnythingAssetAdmin extends Controller {
 		}
 		return "<p>The file requested does not exist</p>";
 	}
-	
+
+	/**
+	 * DeleteFile
+	 * @param $request
+	 * @returns int
+	 */
 	public function DeleteFile(SS_HTTPRequest $request) {
 		try {
 			$this->handlePopulate($request);
-			
-			$result = $this->gallery_item->delete();
-			
-			return $result ? 0 : 1;
-			
+			return $this->gallery_item->delete() ? 1 : 0;
 		} catch (Exception $e) {
 			//print "Failed : {$e->getMessage()}\n";
 		}
 		return 0;
 	}
 	
-	//gallery actions
+	/**
+	 * AdminLink()
+	 * @param $id a  unique identifier related to the action
+	 * @param $action string suffix for action link
+	 * @todo permissions around obtaining this link (e.g frontend)
+	 * @todo prefix for install dir ?
+	 */
+	public static function AdminLink($action, $id) {
+		return Controller::join_links('admin/da', $action, $id);
+	}
+	
+	/**
+	 * ReloadList
+	 * @param $request
+	 * @returns string
+	 */
 	public function ReloadList(SS_HTTPRequest $request) {
 		try {
 			$this->gallery = DataObject::get_one('DisplayAnythingGallery', "\"DisplayAnythingGallery\".\"ID\"='" . Convert::raw2sql($request->param('ID')) . "'");
-			$field = $this->handlerField($request);
-			return  $field->ReloadList($this->gallery);
+			print $this->gallery->GetFileList();
 		} catch (Exception $e) {
+			print "The item list is not available";
 		}
+		exit;
 	}
-	
+
+	/**
+	 * SortItem()
+	 * @param $request
+	 * @returns string
+	 */
 	public function SortItem(SS_HTTPRequest $request) {
 		try {
 			$this->gallery = DataObject::get_one('DisplayAnythingGallery', "\"DisplayAnythingGallery\".\"ID\"='" . Convert::raw2sql($request->param('ID')) . "'");
-			$field = $this->handlerField($request);
-			return  $field->SortItem($this->gallery);
+			print $this->gallery->SortItem();
 		} catch (Exception $e) {
+			print 0;
 		}
+		exit;
 	}
 	
-	//upload actions
+	/**
+	 * Upload()
+	 * @note upload a file into the gallery
+	 * @param $request
+	 * @todo should this be moved out of the Field and into this controller
+	 */
 	public function Upload(SS_HTTPRequest $request) {
 		try {
 			$this->gallery = DataObject::get_one('DisplayAnythingGallery', "\"DisplayAnythingGallery\".\"ID\"='" . Convert::raw2sql($request->param('ID')) . "'");
-			$field = $this->handlerField($request);
-			return  $field->Upload($this->gallery);
+			print $this->gallery->Upload();
 		} catch (Exception $e) {
 		}
+		exit;
 	}
 
 }

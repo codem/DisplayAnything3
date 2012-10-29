@@ -1,11 +1,11 @@
 <?php
-Object::add_extension('Image', 'WatermarkedImageExtension');
-
 Director::addRules(
-	60,
+	100,
 	array(
-		'admin/da//$Action/$ID/$OtherID' => 'DisplayAnythingAssetAdmin',
-		'admin/da//$Action/$ID/field' => 'DisplayAnythingAssetAdmin',
+		'$URLSegment/da/$Action/$ID/$OtherID' =>  'DisplayAnythingAssetAdmin',
+		//'content/admin/da//$Action/$ID/$OtherID' => 'DisplayAnythingAssetAdmin',
+		//'content/admin/da//$Action/$ID/field' => 'DisplayAnythingAssetAdmin',
 	)
 );
+Object::add_extension('Image', 'WatermarkedImageExtension');
 ?>

@@ -1,13 +1,13 @@
 /**
- * UploadAnything - javascript behavours for image uploader
+ * DisplayAnything - javascript behavours for image uploader
  * @copyright Codem 2011
  * @author James Ellis
  * @note issues to http://github.com/codem/DisplayAnything3/issues please
  * @see license.txt
  * @todo handle edit links using loadPanel to load up the editing form for a single File in context
  */
-var UploadAnything = function() {};
-UploadAnything.prototype = {
+var DisplayAnything = function() {};
+DisplayAnything.prototype = {
 	uploader : null,
 	uploads : 0,
 	debug : false,
@@ -71,7 +71,7 @@ UploadAnything.prototype = {
 	},
 	queue_all : function() {
 		var _self = this;
-		jQuery('.uploadanything-upload-box').each(
+		jQuery('.uploader-upload-box').each(
 			function() {
 				try {
 					//upload config comes in from rel attribute
@@ -219,7 +219,7 @@ UploadAnything.prototype = {
 
 jQuery(document).ready(
 	function() {
-		var u = new UploadAnything();
+		var u = new DisplayAnything();
 		u.init();
 		u.queue_init();
 	}

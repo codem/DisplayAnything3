@@ -1,9 +1,9 @@
 <?php
 /**
- * UploadAnything_Upload_XHR
+ * Uploader_XHRSubmission
  * @note an XHR upload handler
  */
-class UploadAnything_Upload_XHR {
+class Uploader_XHRSubmission {
 
 	private $fileKey;
 	private $tmp_location;
@@ -66,7 +66,7 @@ class UploadAnything_Upload_XHR {
 		return 0;
 	}
 	public function getMimeType() {
-		$mimeType = UploadAnythingFile::MimeType($this->tmp_location);
+		$mimeType = DisplayAnythingFile::MimeType($this->tmp_location);
 		if(!$mimeType) {
 			throw new Exception("Cannot reliably determine the mime-type of this file");
 		}
