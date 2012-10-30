@@ -34,9 +34,10 @@ class DisplayAnythingGalleryField extends FormField {
 	
 	/**
 	 * @param $gallery DisplayAnythingGallery
-	 * $name, $title = null, SS_List $dataList = null, GridFieldConfig $config = null
+	 * @param $name field name
+	 * @param $title field title
 	 */
-	public function __construct($name, $title = null, DisplayAnythingGallery $gallery) {
+	public function __construct($name, $title = "", DisplayAnythingGallery $gallery) {
 		parent::__construct($name, $title);
 		$this->gallery = $gallery;
 		$this->gallery->SetMimeTypes();
@@ -146,7 +147,7 @@ class DisplayAnythingGalleryField extends FormField {
 	
 	/**
 	 * FieldHolder()
-	 * @todo drastically revisit this to use more of GridField
+	 * @param $properties
 	 */
 	public function FieldHolder($properties = array()) {
 	
@@ -157,11 +158,9 @@ class DisplayAnythingGalleryField extends FormField {
 		
 		$gallery = $this->GetGalleryImplementation();
 		
-		$id = $gallery->getField('ID');
+		$id = $gallery->ID;
 		
 		$this->LoadAssets();
-		
-		//START OLD
 		
 		$fields->addFieldsToTab(
 			"Root.{$this->name}Details",
@@ -235,7 +234,7 @@ class DisplayAnythingGalleryField extends FormField {
 		
 			$html .= <<<HTML
 <div class="file-uploader">
-	<div id="$Name" class="field ss-gridfield $Type $extraClass">
+	<div id="$Name" class="field $Type $extraClass">
 			{$titleBlock}
 			<div class="middleColumn">
 				$Field
@@ -416,7 +415,7 @@ HTML;
 				Requirements::css(THIRDPARTY_DIR . '/jstree/themes/apple/style.css');
 				Requirements::css(FRAMEWORK_DIR . '/css/TreeDropdownField.css');
 				Requirements::css(FRAMEWORK_ADMIN_DIR . '/css/screen.css');
-				Requirements::css(FRAMEWORK_DIR . '/css/GridField.css');
+				Requirements::css("display_anything/css/display.css");
 				
 				//construct a form, return it
 				$fields = $file->getCMSFields();

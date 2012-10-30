@@ -445,7 +445,7 @@ class DisplayAnythingFile extends File {
 		<tr><th>Size</th><td>{$meta['size']}</td></tr>
 		<tr><th>Dimensions (WxH)</th><td>{$meta['width']} x {$meta['height']}</td></tr>
 		<tr><th>Type</th><td>{$meta['mimetype']}</td></tr>
-		<tr><th>Thumbnail</th><td>{$thumbnail}</td></tr>
+		<tr><th>Thumbnail</th><td><div class="f">{$thumbnail}</div></td></tr>
 	</tbody>
 </table>
 HTML

@@ -313,6 +313,20 @@ table.file_meta td {
 	padding : 6px 9px;
 }
 
+table.file_meta td .f {
+	-moz-box-shadow: 2px 2px 5px rgba(123,123,123,0.3);
+	-webkit-box-shadow: 2px 2px 5px rgba(123,123,123,0.3);
+	box-shadow: 1px 1px 2px rgba(123,123,123,0.5);
+	border : 1px solid #ccc;
+	padding : 8px 8px 31px 8px;
+	background-color : #fff;
+	float : left;
+}
+table.file_meta td .f img {
+	border : 1px solid #ccc;
+	display : block;
+}
+
 .display_anything_usage select {
 	width : 280px;
 }
