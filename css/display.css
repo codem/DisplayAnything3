@@ -145,7 +145,7 @@ form .file-uploader .help h4 {
 	background: rgba(201, 205, 206, 0.8);
 }
 
-.file-uploader .uploadanything-upload-box {
+.file-uploader .uploader-upload-box {
 	float : left;
 	width : 260px;
 	margin : 0 0 8px 0px;
@@ -171,12 +171,12 @@ form .file-uploader .help h4 {
 	padding : 5px;
 }
 
-.file-uploader .uploadanything-upload-box .qq-uploader {
+.file-uploader .uploader-upload-box .qq-uploader {
 	padding : 0px;
 	width : auto;
 }
 
-.file-uploader .uploadanything-upload-box .qq-upload-list {
+.file-uploader .uploader-upload-box .qq-upload-list {
 	margin : 0;
 	padding : 5px 5px 5px 20px;
 	font-size : 12px;
@@ -184,7 +184,7 @@ form .file-uploader .help h4 {
 	background-color : #fff;
 }
 
-.file-uploader .uploadanything-upload-box .progress {
+.file-uploader .uploader-upload-box .progress {
 	
 }
 
@@ -290,27 +290,41 @@ form#Form_EditForm .upload_anything_field .field_content fieldset .message p {
 	margin : 0;
 }
 
-table.uploadanythingfile_meta {
+table.file_meta {
 	width : 100%;
 	border : 1px solid #ccc;
 	border-collapse : collapse;
 	background-color : #fff;
 }
 
-table.uploadanythingfile_meta tr.replace td.field .middleColumn {
+table.file_meta tr.replace td.field .middleColumn {
 	width : auto;
 }
 
-table.uploadanythingfile_meta th {
+table.file_meta th {
 	text-align : right;
 	width : 120px;
 	background-color : #e9e9e9;
 	vertical-align : top;
 }
-table.uploadanythingfile_meta th,
-table.uploadanythingfile_meta td {
+table.file_meta th,
+table.file_meta td {
 	border : 1px solid #ccc;
 	padding : 6px 9px;
+}
+
+table.file_meta td .f {
+	-moz-box-shadow: 2px 2px 5px rgba(123,123,123,0.3);
+	-webkit-box-shadow: 2px 2px 5px rgba(123,123,123,0.3);
+	box-shadow: 1px 1px 2px rgba(123,123,123,0.5);
+	border : 1px solid #ccc;
+	padding : 8px 8px 31px 8px;
+	background-color : #fff;
+	float : left;
+}
+table.file_meta td .f img {
+	border : 1px solid #ccc;
+	display : block;
 }
 
 .display_anything_usage select {

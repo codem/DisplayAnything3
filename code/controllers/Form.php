@@ -1,9 +1,9 @@
 <?php
 /**
-* UploadAnything_Upload_Form
+* Uploader_PostedForm
 * @note Handle file uploads via regular form post (uses the $_FILES array)
 */
-class UploadAnything_Upload_Form {
+class Uploader_PostedForm {
 
 	private $fileKey;
 	private $field;
@@ -36,7 +36,7 @@ class UploadAnything_Upload_Form {
 	}
 	//ignore the mimetype provided by _FILES, not trusted, allow the server to find it.
 	function getMimeType() {
-		return UploadAnythingFile::MimeType($_FILES[$this->fileKey]['tmp_name']);
+		return DisplayAnythingFile::MimeType($_FILES[$this->fileKey]['tmp_name']);
 	}
 }
 ?>
