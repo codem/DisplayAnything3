@@ -1,9 +1,9 @@
 # DisplayAnything 3.0b3 AKA 'jump in and test' #
 
 ## About ##
-A file and image gallery module for Silverstripe 3.0b3, forked from <a href="http://github.com/codem/displayanything">DisplayAnything</a>.
+A file and image gallery module for Silverstripe 3.0+, forked from our own <a href="http://github.com/codem/displayanything">DisplayAnything for SS 2.4.5+</a>.
 
-This module is only compatible with <a href="http://www.silverstripe.org/silverstripe-3.0-beta-3-fewer-tabs-more-awesome/">the Silverstripe 3.0b3 release</a>.
+This module is only compatible with <a href="http://www.silverstripe.org/silverstripe-3.0-beta-3-fewer-tabs-more-awesome/">the Silverstripe 3.0 release</a>.
 
 <img src="./DisplayAnything3/raw/master/examples/readme.png" width="800" style="display:block;margin: 0 auto;" />
 The module in action - A CMS view of a gallery associated with a page.
