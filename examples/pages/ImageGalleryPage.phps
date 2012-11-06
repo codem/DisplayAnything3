@@ -22,7 +22,7 @@ class ImageGalleryPage extends Page {
 		/**
 		 * DisplayAnythingGalleryField is a GridField
 		 */
-		$gallery = new DisplayAnythingGalleryField('ImageGallery','My Gallery', $this);
+		$gallery = new DisplayAnythingGalleryField('ImageGallery','My Gallery', $this->ImageGallery());
 
 		$fields->addFieldToTab('Root.Gallery', $gallery);
 		

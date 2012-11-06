@@ -13,11 +13,7 @@ class VideoGalleryPage extends Page {
 		$fields = parent::getCmsFields();
 
 		//YOUTUBE VIDEO gallery - a simple extension to the default gallery
-		$gallery = new DisplayAnythingGalleryField(
-			'VideoGallery',
-			'DisplayAnythingYouTubeGallery',
-			$this //related dataobject
-		);
+		$gallery = new DisplayAnythingGalleryField('VideoGallery','A video gallery',$this->VideoGallery());
 		$fields->addFieldToTab('Root.Content.Videos', $gallery);
 
 		return $fields;

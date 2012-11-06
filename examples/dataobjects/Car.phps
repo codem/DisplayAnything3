@@ -21,11 +21,7 @@ class Car extends DataObject {
 		$fields = parent::getCmsFields();
 
 		//GALLERY per page
-		$gallery = new DisplayAnythingGalleryField(
-			$this,
-			'Photos',
-			'DisplayAnythingGallery'
-		);
+		$gallery = new DisplayAnythingGalleryField('Photos','Gallery Title',$this->Photos());
 		$fields->addFieldToTab('Root.Photos', $gallery);
 		
 		return $fields;
