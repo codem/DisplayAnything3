@@ -8,4 +8,6 @@ Director::addRules(
 	)
 );
 Object::add_extension('Image', 'WatermarkedImageExtension');
+//Transliterator::create() requires at least one argument.
+FileNameFilter::$default_use_transliterator = FALSE;
 ?>
