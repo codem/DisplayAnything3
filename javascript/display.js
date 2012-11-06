@@ -5,6 +5,7 @@
  * @note issues to http://github.com/codem/DisplayAnything3/issues please
  * @see license.txt
  * @todo handle edit links using loadPanel to load up the editing form for a single File in context
+ * @todo .on events are not being kept after reload event is triggered
  */
 var DisplayAnything = function() {};
 DisplayAnything.prototype = {
@@ -43,8 +44,11 @@ DisplayAnything.prototype = {
 	},
 	check_completion : function(FileUploader) {
 		if(!this.in_progress()) {
-			jQuery(FileUploader.element).parents('.file-uploader:first').find('a.reload').trigger('click');
+			this.reload_list(FileUploader.element);
 		}
+	},
+	reload_list : function(elem) {
+		jQuery(elem).parents('.file-uploader:first').find('a.reload').trigger('click');
 	},
 	in_progress : function() {
 		return this.uploads > 0;
@@ -54,16 +58,18 @@ DisplayAnything.prototype = {
 		this.queue_all();
 		var _self = this;
 		//when the cms container changes state...
-		jQuery('.cms-container').on(
+		jQuery(document).on(
 			'afterstatechange',
+			'.cms-container',
 			function(e, data) {
 				//..and after a state change in the CMS container
 				_self.queue_all();
 			}
 		);
 		//and when the cms edit form completes loading after change
-		jQuery('.cms-content').on(
+		jQuery(document).on(
 			'reloadeditform',
+			'.cms-content',
 			function(e, ui) {
 				_self.queue_all();
 			}
@@ -108,28 +114,16 @@ DisplayAnything.prototype = {
 						jQuery(list).parents('.file-uploader').find('a.sortlink').attr('href'),
 						{ items : items },
 						function() {
-							jQuery(list).parents('.file-uploader').find('a.reload').trigger('click');
+							_self.reload_list(list);
 						}
 					);
 				}
 			}).disableSelection();
 		
-		//reload all items beyond just the list of images
-		jQuery('.file-uploader a.reload-all')
-			.on(
-				'click',
-				function(event) {
-					event.preventDefault();
-					if(!_self.in_progress()) {
-						jQuery(this).parents('.file-uploader').find('.qq-upload-list').hide().empty();
-					}
-				}
-			);
-		
 		//reload items
-		jQuery('.file-uploader a.reload')
-			.on(
+		jQuery(document).on(
 				'click',
+				'.file-uploader a.reload',
 				function(event) {
 					event.preventDefault();
 					jQuery('.qq-upload-drop-area').hide(100);
@@ -142,6 +136,8 @@ DisplayAnything.prototype = {
 							jQuery(this).attr('href'),
 							{},
 							function() {
+								//rebind all events to elements
+								//_self.viewer();
 								jQuery(this).fadeTo(200,1);
 								jQuery('.file-uploader a.reload').removeClass('loading');
 							}
@@ -151,18 +147,18 @@ DisplayAnything.prototype = {
 			);
 		
 		//delete items
-		jQuery('.file-uploader-list .file-uploader-item a.deletelink')
-			.on(
+		jQuery(document).on(
 				'click',
+				'.file-uploader-list .file-uploader-item a.deletelink',
 				function(event) {
 					event.preventDefault();
 					try {
-						var _self = this;
+						var _elem = this;
 						jQuery.post(
 							jQuery(this).attr('href'),
 							{},
 							function() {
-								jQuery(_self).parents('.file-uploader').find('a.reload').trigger('click');
+								_self.reload_list(_elem);
 							}
 						);
 					} catch(e) {}
@@ -172,12 +168,12 @@ DisplayAnything.prototype = {
 		
 		
 		//edit items - bind some events to whereever the link loads
-		jQuery('.file-uploader-list .file-uploader-item a.editlink')
-			.on(
+		jQuery(document).on(
 				'click',
+				'.file-uploader-list .file-uploader-item a.editlink',
 				function(event) {
 					event.preventDefault();
-					var _self = this;
+					var _elem = this;
 					//create a dialog (refer LeftAndMain.js)
 					var id = 'ss-ui-dialog-' + jQuery(this).parents('.file-uploader-item').attr('rel');
 					var dialog = jQuery('#' + id);
@@ -186,13 +182,12 @@ DisplayAnything.prototype = {
 						jQuery('body').append(dialog);
 					}
 					var extraClass = jQuery(this).data('popupclass');
-					dialog.ssdialog({iframeUrl: jQuery(this).attr('href'), autoOpen: false, dialogExtraClass: extraClass});
-					jQuery(dialog).parent().find('.ui-dialog-titlebar-close').on(
-						'click',
-						function() {
-							jQuery(_self).parents('.file-uploader').find('a.reload').trigger('click');
-						}
-					);
+					dialog.ssdialog({
+						iframeUrl: jQuery(this).attr('href'),
+						autoOpen: false,
+						dialogExtraClass: extraClass,
+						close : function() { _self.reload_list(_elem); }
+					});
 					//open it
 					dialog.ssdialog('open');
 					return false;
