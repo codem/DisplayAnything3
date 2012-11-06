@@ -1,61 +1,79 @@
-# DisplayAnything 3.0b3 AKA 'jump in and test' #
+# DisplayAnything 3 #
 
 ## About ##
 A file and image gallery module for Silverstripe 3.0+, forked from our own <a href="http://github.com/codem/displayanything">DisplayAnything for SS 2.4.5+</a>.
 
-This module is only compatible with <a href="http://www.silverstripe.org/silverstripe-3.0-beta-3-fewer-tabs-more-awesome/">the Silverstripe 3.0 release</a>.
+<ul>
+<li>Multiple file uploading in supported browsers (not Internet Explorer)</li>
+<li>Drag and Drop file uploading in supported browsers - Chrome, Firefox, Safari (and maybe Opera)</li>
+<li>Uses a mimetype map, not file extensions to determine an uploaded file type</li>
+<li>Uses system settings for upload file size</li>
+<li>XHR file uploading</li>
+<li>100% Flash Free - no plugin crashes or other futzing with incomprehensible errors!</li>
+<li>Uses SS3.0 bundled jQuery</li>
+<li>Documented, extendable class</li>
+<li>$_REQUEST free zone</li>
+<li>Currently uses Valum's File Uploader ( http://github.com/valums/file-uploader ). Porting to jQuery Uploader is on the horizon.</li>
+</ul>
+
+This module is only compatible with <a href="http://www.silverstripe.org/stable-download/">the Silverstripe 3.0 release</a>.
 
 <img src="./DisplayAnything3/raw/master/examples/readme.png" width="800" style="display:block;margin: 0 auto;" />
 The module in action - A CMS view of a gallery associated with a page.
 
 ## State ##
-This is a fork of <a href="http://github.com/codem/displayanything">DisplayAnything</a> for SilverStripe 3.0b3.
 
-Note: Don't expect it to work consistently in a production environment. It may eat your files or worse. Backup your files if you are testing.
+We've tested the module on various sites both internal and external and are happy with the performance. We're considering it a release candidate at the moment.
 
-If you would like to contribute to the development of this module, please fork it and hack away. If you would like to use a spiffy multi-file uploader and gallery module in SilverStripe 2.4.x, please look at <a href="http://github.com/codem/displayanything">DisplayAnything</a>.
+If you would like to contribute to the development of this module, please fork it, hack away and then open a pull request.
 
-To assist with version identification this module will be versioned the same as the pre-release version of SS3.0 it has been tested against.
+If you would like to use a spiffy multi-file uploader and gallery module in SilverStripe 2.4.x, please look at <a href="http://github.com/codem/displayanything">DisplayAnything</a>. Note that development of the v2 module will only include security updates.
 
 ## Changes ##
 <ul>
-<li>New admin asset controller ;)</li>
-<li>Refactored the gallery field CSS to make it 3.0-ish</li>
-<li>Removed single file handling, you can have a gallery with one file instead</li>
-<li>Compat. with 3.0b2 to 3.0b3 API changes</li>
+<li>Refactored gallery field</li>
+<li>Gallery field no longer extends GridField, it's just a FormField</li>
+<li>Pass the gallery relation in when creating field</li>
+<li>Works with Strict Standards in PHP 5.4+</li>
+<li>Move gallery methods to the gallery class & field related methods to the field class</li>
+<li>Removed Image Gallery migration handlers as that module is not used in SS3</li>
 </ul>
 
-## Changes 2.4 -> 3.0 ##
-<ul>
-<li>The field now extends GridField rather than ComplexTableField</li>
-<li>Updated JS upload handling to bind on new CMS events</li>
-<li>Remove 2.4 JS handlers such as lightbox loading</li>
-<li>Update drop zone styles to match UploadField</li>
-<li>General CSS updates</li>
-<li>Deprecate getComponentInfo() compat layer and remove calls to it</li>
-<li>Update example page content</li>
-<li>Layout updates in FieldHolder</li>
-<li>CleanFileName() now hits up FileNameFilter</li>
-<li>Change WatermarkedImageDecorator to WatermarkedImageExtension and use DataExtension</li>
-<li>Change behaviour of OrderedGalleryItems for use as default DataList</li>
-</ul>
+## Upgrading ##
+Previous versions were considered beta with API changes possible. We've changed the calling method for creating the gallery field and have removed or combined certain files.
 
-## TODO / Known issues ###
+<ol>
+<li>As with all SS module upgrades - sign in as admin *before* upgrading</li>
+<li>Replace display_anything with the most recent release</li>
+<li>Update the gallery field creation. Look at the examples directory for examples.</li>
+<li>Run /dev/build to rebuild the site manifest<li>
+<li>Browse to your page or dataobject containing the gallery
+</ol>
+
+We recommend updating this on your staging site then moving all changes live in a single update.
+
+## TODO ###
 <ul>
-<li>Replace and Alternate Image could be rather shaky</li>
-<li>Reload link on an empty gallery removes the initial 'no files have been associated'</li>
-<li>We'd like the edit gallery item for to open in a CMS panel, not a popup box</li>
+<li>We'd like the edit handler to open in a CMS panel, not a dialog. If you'd like to try and implement this, go for it.</li>
 <li>Translations</li>
-<li>Insert Internet Explorer line here</li>
+<li>Insert usual Internet Explorer line here. Note: we haven't looked at performance in <= IE8.</li>
+<li>In PHP 5.4+, Transliterator::Create() is being called without a required argument by the SS Core, we have turned this off for now</li>
 </ul>
 
-## Got a bug? ##
+## Blame/Praise/Annotate ? ##
 
-If you find a bug we'd like to know about it. Please use the Github issue tracker. Please provide the browser name and version plus a description of what is happening so that we can reproduce any issues fast.
+If you find a bug we'd like to know about it. If you like the module, spread the word on the internets!
+
+<ol>
+<li>Please use the Github issue tracker</li>
+<li>Please provide the browser name and version</li>
+<li>Provide a description of what is happening so that we can reproduce any issues fast.</li>
+<li>Links to any examples of the issues that are occurring are very helpful</li>
+</ol>
 
 ## Installing ##
 <ol>
-<li>Download and <a href="http://www.silverstripe.org/pre-releases/">install SilverStripe 3.0b3</a></li>
+<li>Download and <a href="http://www.silverstripe.org/stable-download/">install SilverStripe 3.0</a></li>
 <li>cd /path/to/your/silverstripe/site</li>
 <li>Grab the source:
 	<dl>
@@ -72,15 +90,6 @@ If you find a bug we'd like to know about it. Please use the Github issue tracke
 <li>implement in the CMS - see the 'examples' directory in the source</li>
 <li>log into the CMS and start editing</li>
 </ol>
-
-## Migrating items from the ImageGallery gallery module ##
-
-Note: this functionality is experimental in this version of the module.
-
-If DisplayAnything detects an  ImageGallery Album associated with the current page it will provide an Image Gallery Migration tab containing migration options. Migrated images are copied rather than moved.
-You can choose a albums from the list of album(s) provided and save the page, successfully imported items will appear in the file list. You can retry the migration at any time.
-
-Once migration is complete you can remove the Image Gallery module as and when you wish.
 
 ## CMS implementation ##
 View the <a href="./DisplayAnything3/tree/master/examples">example directory</a> for some sample page, dataobject and template implementations.
@@ -119,8 +128,8 @@ Use the following in your site config:
 + Uses GD
 + 8 bit PNGs only
 + The watermark source image is not resized
-+ The original image is not watermarked
-+ WatermarkedImageDecorator decorates Image
++ The original image is not watermarked, only the thumbs created with "Watermark_METHODNAME_()" get watermarked
++ WatermarkedImageExtension is an extension to Image
 
 ## Licenses ##
 DisplayAnything is licensed under the Modified BSD License (refer license.txt)
