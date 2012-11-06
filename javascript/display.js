@@ -54,7 +54,7 @@ DisplayAnything.prototype = {
 		this.queue_all();
 		var _self = this;
 		//when the cms container changes state...
-		jQuery('.cms-container').live(
+		jQuery('.cms-container').on(
 			'afterstatechange',
 			function(e, data) {
 				//..and after a state change in the CMS container
@@ -62,12 +62,13 @@ DisplayAnything.prototype = {
 			}
 		);
 		//and when the cms edit form completes loading after change
-		jQuery('.cms-content').live(
+		jQuery('.cms-content').on(
 			'reloadeditform',
 			function(e, ui) {
 				_self.queue_all();
 			}
 		);
+		
 	},
 	queue_all : function() {
 		var _self = this;
@@ -115,7 +116,7 @@ DisplayAnything.prototype = {
 		
 		//reload all items beyond just the list of images
 		jQuery('.file-uploader a.reload-all')
-			.live(
+			.on(
 				'click',
 				function(event) {
 					event.preventDefault();
@@ -127,7 +128,7 @@ DisplayAnything.prototype = {
 		
 		//reload items
 		jQuery('.file-uploader a.reload')
-			.live(
+			.on(
 				'click',
 				function(event) {
 					event.preventDefault();
@@ -151,7 +152,7 @@ DisplayAnything.prototype = {
 		
 		//delete items
 		jQuery('.file-uploader-list .file-uploader-item a.deletelink')
-			.live(
+			.on(
 				'click',
 				function(event) {
 					event.preventDefault();
@@ -172,20 +173,29 @@ DisplayAnything.prototype = {
 		
 		//edit items - bind some events to whereever the link loads
 		jQuery('.file-uploader-list .file-uploader-item a.editlink')
-			.live(
+			.on(
 				'click',
 				function(event) {
+					event.preventDefault();
 					var _self = this;
-					if(jQuery(this).hasClass('ss-ui-dialog-link')) {
-						jQuery('.ui-dialog .ui-dialog-titlebar-close, .ui-widget-overlay').one(
-							'click',
-							function() {
-								//when these items are hit, trigger a reload
-								jQuery(_self).parents('.file-uploader').find('a.reload').trigger('click');
-							}
-							
-						);
+					//create a dialog (refer LeftAndMain.js)
+					var id = 'ss-ui-dialog-' + jQuery(this).parents('.file-uploader-item').attr('rel');
+					var dialog = jQuery('#' + id);
+					if(!dialog.length) {
+						dialog = jQuery('<div class="ss-ui-dialog da-ss-ui-dialog" id="' + id + '" />');
+						jQuery('body').append(dialog);
 					}
+					var extraClass = jQuery(this).data('popupclass');
+					dialog.ssdialog({iframeUrl: jQuery(this).attr('href'), autoOpen: false, dialogExtraClass: extraClass});
+					jQuery(dialog).parent().find('.ui-dialog-titlebar-close').on(
+						'click',
+						function() {
+							jQuery(_self).parents('.file-uploader').find('a.reload').trigger('click');
+						}
+					);
+					//open it
+					dialog.ssdialog('open');
+					return false;
 				}
 			);
 			
