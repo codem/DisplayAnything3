@@ -398,9 +398,9 @@ class DisplayAnythingFile extends File {
 			'Root.Linking',
 			array(
 				new TreeDropdownField(
-						"InternalLinkID",
-						"Internal page link",
-						"SiteTree"
+					"InternalLinkID",
+					"Internal page link",
+					"SiteTree"
 				),
 				new TextField('ExternalURL', 'External link (e.g http://example.com/landing/page) - will override Internal Page Link', $this->ExternalURL),
 				new TextField('CallToActionText', 'Call To Action Text (placed on button or link selected)', $this->CallToActionText),
