@@ -5,26 +5,25 @@
  * @package display_anything
  * @copyright Codem 2011 onwards
  * @author <a href="http://www.codem.com.au">Codem / James Ellis</a>
- * @note relies on and uses Valum's File Uploader ( http://github.com/valums/file-uploader )
- * @note 
-		<h4>Background</h4>
+ * @note <h4>Background</h4>
 		<p>Handle file uploads via XHR or standard uploads.</p>
 		<h4>Features</h4>
 		<ul>
 			<li>Security: uses a mimetype map, not file extensions to determine an uploaded file type</li>
 			<li>Integration: uses system settings for upload file size</li>
 			<li>Usability: Multiple file uploading in supported browsers (not Internet Explorer)</li>
-			<li>Drag and Drop in supported browsers (Chrome, Firefox, Safari)
+			<li>Drag and Drop in supported browsers - Chrome, Firefox, Safari & Opera - maybe.
 			<li>XHR file uploading</li>
 			<li>100% Flash Free - no plugin crashes or other futzing with incomprehensible errors!</li>
-			<li>Has Zero Dependencies on DataObjectManager or Uploadify</li>
-			<li>Designed to work with ComplexTableField</li>
-			<li>Not reliant on jQuery or ProtoType</li>
+			<li>Uses SS3.0 bundled jQuery</li>
 			<li>Documented, extendable class</li>
 			<li>$_REQUEST not used</li>
+			<li>Currently uses Valum's File Uploader ( http://github.com/valums/file-uploader )</li>
 		</ul>
- * @note that file extensions are not used, except for basic client side validation.
+		<p>Got a bug ? Add it to the issue tracker on Github (http://github.com/codem/displayanything3) - make sure to include your browser details and a reproducible test case.</p>
+		<p>See readme.md for setup instructions</p>
  * @todo use bundled jQuery uploader
+ * @todo handle ability to upload files before the related gallery is saved, maybe by creating the gallery when the related dataobject is loaded or created
  */
 class DisplayAnythingGalleryField extends FormField {
 	
@@ -93,7 +92,11 @@ class DisplayAnythingGalleryField extends FormField {
 	 * @returns string
 	 */
 	protected function GetAllowedFilesNote() {
-		return $this->GetGalleryImplementation()->Usage()->TitleMap();
+		$note = $this->GetGalleryImplementation()->Usage()->TitleMap();
+		if($note == "") {
+			$note = $this->GetGalleryImplementation()->DefaultMimeTypesList();
+		}
+		return $note;
 	}
 	
 	/**
@@ -226,7 +229,7 @@ class DisplayAnythingGalleryField extends FormField {
 			$titleBlock .= "<label class=\"left\" for=\"{$this->id()}\">";
 			$titleBlock .= "<ul><li><a href=\"{$reload}\" class=\"reload reload-all\">Reload</a><a class=\"sortlink\" href=\"{$resort}\">sort</a></li>";
 			$titleBlock .= "<li><span><strong>Max. file size:</strong> " . round($gallery->GetMaxSize() / 1024 / 1024, 2) . "Mb</span></li>";
-			$titleBlock .= "<li><span><strong>File types:</strong> " . $this->GetAllowedFilesNote() . "</span></li></ul>";
+			$titleBlock .= "<li><span><strong>File types:</strong> " . implode(", ", $this->GetAllowedExtensions()) . "</span></li></ul>";
 			$titleBlock .= "</label></div></div>";
 			
 			// $MessageType is also used in {@link extraClass()} with a "holder-" prefix
@@ -272,20 +275,16 @@ HTML;
 	 */
 	protected function SaveUsage($id) {
 		if(!empty($_POST['GalleryUsage'][$this->name][$id]['Title'])) {
-			//adding a new gallery usage
 			$usage = new DisplayAnythingGalleryUsage();
 			$usage->Title = $_POST['GalleryUsage'][$this->name][$id]['Title'];
 			$mimetypes = (!empty($_POST['GalleryUsage'][$this->name][$id]['MimeTypes']) ? $_POST['GalleryUsage'][$this->name][$id]['MimeTypes'] : '');
-			
 			//if one per line, replace with commas
 			$mimetypes = preg_replace("/[\n\r\s]+/", ",", $mimetypes);
 			$mimetypes = preg_replace("/[,]{2}/", ",", $mimetypes);
 			$usage->MimeTypes = $mimetypes;
-			
 			if(!empty($_POST['GalleryUsage'][$this->name][$id]['ID'])) {
 				$usage->ID = $_POST['GalleryUsage'][$this->name][$id]['ID'];
 			}
-			
 			return $usage->write();
 		}
 		return FALSE;
@@ -302,18 +301,13 @@ HTML;
 	
 			//save into the DisplayAnythingGallery
 			if(!empty($_POST[$this->name]) && is_array($_POST[$this->name])) {
-				$gallery = $record->{$this->name}();
-				$migrate = FALSE;
+				$gallery = $this->GetGalleryImplementation();
 				foreach($_POST[$this->name] as $id=>$data) {
 				
 					if($usage = $this->SaveUsage($id)) {
 						$gallery->UsageID = $usage;
 					} else if(!empty($data['UsageID'])) {
 						$gallery->UsageID = $data['UsageID'];
-					}
-				
-					if(!empty($data['MigrateImageGalleryAlbumID'])) {
-						$migrate = $data['MigrateImageGalleryAlbumID'];
 					}
 					
 					if($id == 0 || $id == $gallery->ID) {

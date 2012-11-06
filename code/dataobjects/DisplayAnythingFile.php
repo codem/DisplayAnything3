@@ -75,24 +75,26 @@ class DisplayAnythingFile extends File {
 	}
 	
 	static public function MimeType($location = "") {
-		$mimeType = FALSE;
-		if(!is_readable($location)) {
-			return FALSE;
-		}
-		if(function_exists('finfo_open')) {
-			//use finfo
-			$finfo = finfo_open(FILEINFO_MIME_TYPE);
-			$mimeType = finfo_file($finfo, $location);
-		} else {
-			//maybe it's an image..
-			$parts = @getimagesize($location);
-			if(!empty($parts[2])) {
-				$mimeType = image_type_to_mime_type($parts[2]);
-			} else if(function_exists('mime_content_type')) {
-				$mimeType = mime_content_type($location);
+		$mimeType = $source = FALSE;
+		if(is_readable($location)) {
+			if(function_exists('finfo_open')) {
+				//use finfo
+				$finfo = finfo_open(FILEINFO_MIME_TYPE);
+				$mimeType = finfo_file($finfo, $location);
+				$source = 'finfo';
+			} else {
+				//maybe it's an image..
+				$parts = @getimagesize($location);
+				if(!empty($parts[2])) {
+					$mimeType = image_type_to_mime_type($parts[2]);
+					$source = 'getimagesize';
+				} else if(function_exists('mime_content_type')) {
+					$mimeType = mime_content_type($location);
+					$source = 'mime_content_type';
+				}
 			}
 		}
-		return $mimeType;
+		return array('mimetype' => $mimeType, 'source' => $source);
 	}
 	
 	/**
@@ -122,18 +124,20 @@ class DisplayAnythingFile extends File {
 		}
 		
 		$path = $this->getFullPath();
-		
+		$mimetype = self::MimeType($path);
 		$this->meta = array();
 		$this->meta['name'] = $this->Name;
+		$this->meta['image'] = FALSE;
 		$this->meta['exists'] = file_exists($path);
 		$this->meta['width'] = '';
 		$this->meta['height'] = '';
 		$this->meta['size'] = $this->getSize();
-		$this->meta['mimetype'] = self::MimeType($path);
+		$this->meta['mimetype'] = $mimetype['mimetype'];
 		if($this->IsImage()) {
 			$data = getimagesize($path);
 			$this->meta['width'] = $data[0];
 			$this->meta['height'] = $data[1];
+			$this->meta['image'] = TRUE;
 		}
 		return $this->meta;
 	}
@@ -353,28 +357,6 @@ class DisplayAnythingFile extends File {
 		return new FileField('ReplaceWith', 'Replace');
 	}
 	
-	public function onBeforeWrite() {
-		parent::onBeforeWrite();
-		if(!empty($_FILES['ReplaceWith'])) {
-			$upload = new Upload();
-			//TODO - validate the replacement
-			$result = $upload->loadIntoFile($_FILES['ReplaceWith'], $this);
-			if($result) {
-				unset($this->ReplaceWith);
-			}
-		}
-		
-		if(!empty($_FILES['AlternateImage'])) {
-			$upload = new Upload();
-			$image = new Image();
-			//TODO - validate the replacement
-			$result = $upload->loadIntoFile($_FILES['AlternateImage'], $image);
-			if($result) {
-				$this->AlternateImageID = $image->ID;
-			}
-		}
-	}
-	
 	public function getCMSFields() {
 		
 		$fields = parent::getCMSFields();
@@ -390,9 +372,39 @@ class DisplayAnythingFile extends File {
 				new TextField('Caption', 'Caption', $this->Caption),
 				new TextareaField('Description', 'Description', $this->Description),
 				new DropDownField('OwnerID','Who owns this file?', DataObject::get('Member')->map('ID','Name'), $this->OwnerID),
-				new FileField('AlternateImage', 'Optional Alternate Image'),
 			)
 		);
+		
+		
+		//handle alternate image
+		
+		$alt = new FileField('AlternateImage', 'Optional Alternate Image (jpg,png,gif)');
+		$alt->getValidator()->setAllowedExtensions(array('jpg', 'jpeg', 'png', 'gif'));
+		
+		$tag = FALSE;
+		$alternate = $this->AlternateImage();
+		if(!empty($alternate->ID)) {
+			$tag = new ReadonlyField('CurrentAlternateImage', 'Current alternate image (resized to 32px)', '<img src="' . $alternate->SetWidth(32)->URL . '" />');
+			$tag->dontEscape = TRUE;
+		}
+		
+		$fields->addFieldsToTab(
+			'Root.Alternate',
+			array(
+				new LiteralField('AlternateNotice','<p class="message notice">You can represent this file with an alternate image. This requires your theme to be aware of this field.</p>'),
+				$alt,//filefield
+			)
+		);
+		
+		if($tag) {
+			$fields->addFieldsToTab(
+				'Root.Alternate',
+				array(
+					$tag,//literal
+					new CheckboxField('RemoveAlternateImage', 'Remove alternate image'),
+				)
+			);
+		}
 		
 		$fields->addFieldsToTab(
 			'Root.Linking',
@@ -402,7 +414,7 @@ class DisplayAnythingFile extends File {
 					"Internal page link",
 					"SiteTree"
 				),
-				new TextField('ExternalURL', 'External link (e.g http://example.com/landing/page) - will override Internal Page Link', $this->ExternalURL),
+				new TextField('ExternalURL', 'External link (e.g http://example.com/landing/page) - will override the Internal page link if provided', $this->ExternalURL),
 				new TextField('CallToActionText', 'Call To Action Text (placed on button or link selected)', $this->CallToActionText),
 			)
 		);
@@ -425,18 +437,16 @@ class DisplayAnythingFile extends File {
 				//and some meta
 				new LiteralField(
 					'FileMetaData',
-<<<HTML
-{$warning}
-<table class="file_meta">
-	<tbody>
-		<tr><th>Name</th><td>{$meta['name']}</td></tr>
-		<tr><th>Size</th><td>{$meta['size']}</td></tr>
-		<tr><th>Dimensions (WxH)</th><td>{$meta['width']} x {$meta['height']}</td></tr>
-		<tr><th>Type</th><td>{$meta['mimetype']}</td></tr>
-		<tr><th>Thumbnail</th><td><div class="f">{$thumbnail}</div></td></tr>
-	</tbody>
-</table>
-HTML
+					"{$warning}
+					<table class=\"file_meta\">
+						<tbody>
+							<tr><th>Name</th><td>{$meta['name']}</td></tr>
+							<tr><th>Size</th><td>{$meta['size']}</td></tr>
+							" . ($meta['image'] ? "<tr><th>Dimensions (WxH)</th><td>{$meta['width']} x {$meta['height']}</td></tr>" : "") . "
+							<tr><th>Type</th><td>{$meta['mimetype']}</td></tr>
+							" . ($meta['image'] ? "<tr><th>Thumbnail</th><td><div class=\"f\">{$thumbnail}</div></td></tr>" : "") . "
+						</tbody>
+					</table>"
 				),
 			)
 		);
@@ -460,6 +470,7 @@ HTML
 	/**
 	 * GetFileIcon()
 	 * @returns string
+	 * @todo return better icon based on file type
 	 */
 	public static function GetFileIcon($type = "") {
 		return "<img src=\"" . FRAMEWORK_DIR . "/images/app_icons/generic_32.gif\" width=\"24\" height=\"32\" alt=\"file icon\" />";

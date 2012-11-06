@@ -36,7 +36,11 @@ class Uploader_PostedForm {
 	}
 	//ignore the mimetype provided by _FILES, not trusted, allow the server to find it.
 	function getMimeType() {
-		return DisplayAnythingFile::MimeType($_FILES[$this->fileKey]['tmp_name']);
+		$mimeType = DisplayAnythingFile::MimeType($_FILES[$this->fileKey]['tmp_name']);
+		if(!$mimeType['mimetype']) {
+			throw new Exception("Cannot reliably determine the mime-type of this file");
+		}
+		return $mimeType['mimetype'];
 	}
 }
 ?>

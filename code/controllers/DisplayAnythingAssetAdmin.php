@@ -49,12 +49,42 @@ class DisplayAnythingAssetAdmin extends Controller {
 			
 			$form = $field->EditForm($this->gallery_item, $this);
 			
+			
 			if($request->isPOST()) {
 				try {
+					
 					$record = $request->postVars();
+					
+					//handle replace and alternate image
+					if(!empty($_FILES['ReplaceWith'])) {
+						$upload = new Upload();
+						//TODO - validate the replacement using the current gallery validation rules
+						FileNameFilter::$default_use_transliterator = FALSE;
+						$result = $upload->loadIntoFile($_FILES['ReplaceWith'], $this->gallery_item);
+					}
+					
+					$alt = $this->gallery_item->AlternateImage();
+					if(!empty($record['RemoveAlternateImage']) && $alt) {
+						$alt->delete();
+						$this->gallery_item->AlternateImageID = NULL;
+						unset($record['RemoveAlternateImage']);
+						unset($record['AlternateImageID']);
+					} else if(!empty($_FILES['AlternateImage'])) {
+						$upload = new Upload();
+						$upload->getValidator()->setAllowedExtensions(array('jpg', 'jpeg', 'png', 'gif'));
+						$image = new Image();
+						FileNameFilter::$default_use_transliterator = FALSE;
+						$result = $upload->loadIntoFile($_FILES['AlternateImage'], $image);
+						if($result) {
+							$this->gallery_item->AlternateImageID = $image->ID;
+						}
+					}
 					$this->gallery_item->castedUpdate($record);
-					$this->gallery_item->write();
-					$form->sessionMessage('Saved ;)','good');
+					$result = $this->gallery_item->write();
+					if(!$result) {
+						throw new Exception("Failed to write dataobject");
+					}
+					$form->sessionMessage('Saved','good');
 				} catch (Exception $e) {
 					$form->sessionMessage('Failed to save','bad');
 				}
@@ -69,6 +99,16 @@ class DisplayAnythingAssetAdmin extends Controller {
 			//print "Failed : {$e->getMessage()}\n";
 		}
 		return "<p>The file requested does not exist</p>";
+	}
+	
+	/**
+	 * InternalLinkID
+	 * @note Handles picking an internal link from the site tree
+	 * @returns string
+	 */
+	public function InternalLinkID(SS_HTTPRequest $request) {
+		$field = new TreeDropdownField("InternalLinkID","Internal page link","SiteTree");
+		return $field->tree($request);
 	}
 
 	/**

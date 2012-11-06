@@ -5,13 +5,20 @@
 class DisplayAnythingGalleryUsage extends DataObject {
 
 	static $db = array(
-		'Title' => 'varchar(255)',
-		'MimeTypes' => 'text',
+		'Title' => 'Varchar(255)',
+		'MimeTypes' => 'Text',
 	);
 	
 	public function TitleMap() {
-		$types = explode(",", $this->MimeTypes);
-		return $this->Title . " (" . implode(",", array_unique($types)) . ")";
+		$mimetypes = trim($this->MimeTypes, ", ");
+		if($mimetypes != "") {
+			$types = explode(",", $this->MimeTypes);
+			if(!empty($types)) {
+				$list = implode(", ", array_unique($types));
+				return $this->Title . " (" . $list  . ")";
+			}
+		}
+		return "";
 	}
 	
 	public static $summary_fields = array(

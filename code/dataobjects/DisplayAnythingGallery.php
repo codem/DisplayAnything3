@@ -2,6 +2,7 @@
 /**
   * DisplayAnythingGallery()
   * @note contains many DisplayAnythingFile()s
+  * @note gallery migration from ImageGallery (v2) has been removed in this SS3.0 version
  */
 class DisplayAnythingGallery extends DataObject {
 
@@ -45,7 +46,7 @@ class DisplayAnythingGallery extends DataObject {
 	);
 	
 	static $defaults = array(
-		'Visible' => 1,
+		'Visible' => 0,
 		'Migrated' => 0,
 	);
 	
@@ -105,12 +106,8 @@ class DisplayAnythingGallery extends DataObject {
 		$editlink = DisplayAnythingAssetAdmin::AdminLink('EditFile', $file->ID);
 		
 		$html .= "<div class=\"file-uploader-item\" rel=\"{$file->ID}\">";
-		
-		//$html .= "<a class=\"cms-panel-link\" data-target-panel=\".cms-content\" href=\"{$editlink}\" title=\"" . htmlentities($file->Name, ENT_QUOTES) . "\">";
-		
-		//$html .= "<a href=\"{$editlink}\" class=\"editlink\" title=\"" . htmlentities($file->Name, ENT_QUOTES) . "\">";
-		
-		$html .= "<a class=\"ss-ui-dialog-link editlink\" href=\"{$editlink}\" title=\"" . htmlentities($file->Name, ENT_QUOTES) . "\">";
+		//ss-ui-dialog-link
+		$html .= "<a class=\"editlink\" href=\"{$editlink}\" title=\"" . htmlentities($file->Name, ENT_QUOTES) . "\">";
 		
 		
 		//try to create a thumb (if it is one)
@@ -337,7 +334,7 @@ class DisplayAnythingGallery extends DataObject {
 	 * @returns array
 	 * @note returns a mimetype map for common image file types
 	 */
-	final private function WebImageMimeTypes() {
+	final private function DefaultMimeTypes() {
 		return array(
 			'image/jpg' => 'jpg',
 			'image/jpeg' => 'jpg',
@@ -346,6 +343,24 @@ class DisplayAnythingGallery extends DataObject {
 			'image/gif' => 'gif',
 			'image/pjpeg' => 'jpg',
 		);
+	}
+	
+	final private function DefaultMimeTypesTitle() {
+		return "Default - image gallery";
+	}
+	
+	final public function DefaultMimeTypesList() {
+		return $this->DefaultMimeTypesTitle() . " (" . implode(", ", array_unique(array_keys($this->DefaultMimeTypes()))) . ")";
+	}
+	
+	/**
+	 * WebImageMimeTypes()
+	 * @returns array
+	 * @note returns a mimetype map for common image file types
+	 * @deprecated
+	 */
+	final private function WebImageMimeTypes() {
+		return $this->DefaultMimeTypes();
 	}
 	
 	// -- START CONFIG
@@ -373,6 +388,8 @@ class DisplayAnythingGallery extends DataObject {
 			$mime_types = $usage->MimeTypes;
 		}
 		
+		$types_list = array();
+		
 		if(is_string($mime_types)) {
 			$chars = DisplayAnythingGalleryUsage::splitterChars();
 			
@@ -383,16 +400,22 @@ class DisplayAnythingGallery extends DataObject {
 				$web_image_mime_types = $this->WebImageMimeTypes();
 				foreach($mime_types as $mime_type=>$value) {
 					//framework/email/Mailer.php
-					$ext = array_search($mime_type, $map);
-					if($ext !== FALSE) {
-						$this->allowed_file_types[$mime_type] = $ext;
-					} else if(array_key_exists($mime_type, $web_image_mime_types)) {
-						//try from our web types
-						$this->allowed_file_types[$mime_type] = $web_image_mime_types[$mime_type];
-						
+					$extensions = array_keys($map, $mime_type);
+					if(!empty($extensions)) {
+						foreach($extensions as $extension) {
+							$types_list[$mime_type][] = $extension;
+						}
+					}
+					if(array_key_exists($mime_type, $web_image_mime_types)) {
+						//the known list of web image types, if in the list
+						$types_list[$mime_type][] = $web_image_mime_types[$mime_type];
 					}
 				}
 			}
+		}
+		
+		foreach($types_list as $mime_type => $extensions) {
+			$this->allowed_file_types[$mime_type] = implode(",", $extensions);
 		}
 		
 		//fall back to basics
@@ -469,6 +492,7 @@ class DisplayAnythingGallery extends DataObject {
 	 */
 	protected function CleanFileName($name) {
 		$filter = Object::create('FileNameFilter');
+		$filter::$default_use_transliterator = false;
 		return $filter->filter($name);
 	}
 	

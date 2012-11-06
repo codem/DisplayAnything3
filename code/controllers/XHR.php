@@ -67,11 +67,10 @@ class Uploader_XHRSubmission {
 	}
 	public function getMimeType() {
 		$mimeType = DisplayAnythingFile::MimeType($this->tmp_location);
-		if(!$mimeType) {
+		if(!$mimeType['mimetype']) {
 			throw new Exception("Cannot reliably determine the mime-type of this file");
 		}
-		
-		return $mimeType;
+		return $mimeType['mimetype'];
 	}
 
 }
