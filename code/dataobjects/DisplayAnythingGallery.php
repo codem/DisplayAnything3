@@ -56,7 +56,7 @@ class DisplayAnythingGallery extends DataObject {
 	 */
 	public function OrderedGalleryItems($only_visible = TRUE) {
 		if(($only_visible && $this->Visible == 1) || !$only_visible) {
-			return DataObject::get('DisplayAnythingFile','GalleryID=' . $this->ID, '"File"."Sort" ASC, "File"."Created" DESC');
+			return DataObject::get('DisplayAnythingFile','GalleryID=' . $this->ID, '"DisplayAnythingFile"."Sort" ASC, "File"."Created" DESC');
 		}
 		return FALSE;
 	}
@@ -157,7 +157,7 @@ class DisplayAnythingGallery extends DataObject {
 				if(!empty($item['id'])) {
 					$sort = (isset($item['pos']) ? (int)$item['pos'] : 0);
 					//run a quick query and bypass the ORM
-					$query = "UPDATE \"File\" SET Sort = '" . Convert::raw2sql($sort) . "' WHERE ID = '" . Convert::raw2sql($item['id']) . "'";
+					$query = "UPDATE \"DisplayAnythingFile\" SET Sort = '" . Convert::raw2sql($sort) . "' WHERE ID = '" . Convert::raw2sql($item['id']) . "'";
 					//print $query . "\n";
 					$result = DB::query($query);
 					if($result) {

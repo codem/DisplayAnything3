@@ -18,6 +18,7 @@ class DisplayAnythingFile extends File {
 		'ExternalURL' => 'varchar(255)',
 		'CallToActionText' => 'varchar(32)',
 		'AlternateURL' => 'varchar(255)',//not in use
+		'Sort' => 'Int',
 	);
 	
 	static $has_one = array(
