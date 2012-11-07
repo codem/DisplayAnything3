@@ -131,10 +131,10 @@ class DisplayAnythingAssetAdmin extends Controller {
 	 * @param $id a  unique identifier related to the action
 	 * @param $action string suffix for action link
 	 * @todo permissions around obtaining this link (e.g frontend)
-	 * @todo prefix for install dir ?
+	 * @ref https://github.com/MattyBalaam/DisplayAnything3/commit/9b1be04b86466be027e533dde039ce139ab12614
 	 */
 	public static function AdminLink($action, $id) {
-		return Controller::join_links('admin/da', $action, $id);
+		return Controller::join_links(Director::BaseURL(), '/admin/da', $action, $id);
 	}
 	
 	/**
