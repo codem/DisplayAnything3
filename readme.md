@@ -46,8 +46,8 @@ Previous versions were considered beta with API changes possible. We've changed 
 <li>As with all SS module upgrades - sign in as admin *before* upgrading</li>
 <li>Replace display_anything with the most recent release</li>
 <li>Update the gallery field creation. Look at the examples directory for examples.</li>
-<li>Run /dev/build to rebuild the site manifest<li>
-<li>Browse to your page or dataobject containing the gallery
+<li>Run /dev/build to rebuild the site manifest</li>
+<li>Browse to your page or dataobject containing the gallery</li>
 </ol>
 
 We recommend updating this on your staging site then moving all changes live in a single update.
@@ -56,7 +56,7 @@ We recommend updating this on your staging site then moving all changes live in 
 <ul>
 <li>We'd like the edit handler to open in a CMS panel, not a dialog. If you'd like to try and implement this, go for it.</li>
 <li>Translations</li>
-<li>Insert usual Internet Explorer line here. Note: we haven't looked at performance in <= IE8.</li>
+<li>Insert usual Internet Explorer line here. Note: we haven't looked at performance in less than IE9.</li>
 <li>In PHP 5.4+, Transliterator::Create() is being called without a required argument by the SS Core, we have turned this off for now</li>
 </ul>
 
