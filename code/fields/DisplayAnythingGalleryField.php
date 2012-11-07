@@ -85,7 +85,11 @@ class DisplayAnythingGalleryField extends FormField {
 		if(empty($types)) {
 			throw new Exception("No allowed file types have been defined for this uploader.");
 		}
-		return array_unique(array_values($types));
+		$list = array();
+		foreach($types as $mimetype => $extension_string_list) {
+			$list = array_merge($list, explode(",", $extension_string_list));
+		}
+		return array_unique($list);
 	}
 
 	/**
