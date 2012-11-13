@@ -15,8 +15,8 @@ class DisplayAnythingGallery extends DataObject {
 	
 	//default file and directory permissions
 	//if your web server runs as a specific user, these can be altered to make the rw for only that user
-	public $file_permission = 0640;//0600 - only by the user and root
-	public $directory_permission = 0750;//0700 - only by the user and root
+	protected static $file_permission = 0640;//0600 - only by the user and root
+	protected static $directory_permission = 0750;//0700 - only by the user and root
 	
 	private $upload_handler;
 	private $fileKey = 'qqfile';
@@ -210,7 +210,7 @@ class DisplayAnythingGallery extends DataObject {
 	 * @note returns file permission
 	 */
 	public function GetFilePermission() {
-		return $this->file_permission;
+		return self::$file_permission;
 	}
 	
 	/**
@@ -218,7 +218,7 @@ class DisplayAnythingGallery extends DataObject {
 	 * @note returns file permission
 	 */
 	public function GetDirectoryPermission() {
-		return $this->directory_permission;
+		return self::$directory_permission;
 	}
 	
 	/**
@@ -462,13 +462,12 @@ class DisplayAnythingGallery extends DataObject {
 	
 	/**
 	 * SetPermissions()
-	 * @note allows you to set permissions for file and directory creation
-	 * @returns DisplayAnythingGallery
+	 * @note allows you to set permissions for file and directory creation from a _config.php file (e.g DisplayAnythingGallery::SetPermissions(0600,0700)
+	 * @returns void
 	 */
-	public function SetPermissions($file = 0640, $directory = 0750) {
-		$this->file_permission = $file;
-		$this->directory_permission = $directory;
-		return $this;
+	public static function SetPermissions($file = 0640, $directory = 0750) {
+		self::$file_permission = $file;
+		self::$directory_permission = $directory;
 	}
 	
 	/**
@@ -604,7 +603,7 @@ class DisplayAnythingGallery extends DataObject {
 			}
 		
 			if(!file_exists($uploadPath)) {
-				mkdir($uploadPath, $this->directory_permission, TRUE);
+				mkdir($uploadPath, self::$directory_permission, TRUE);
 			}
 			
 			if (!is_writable($uploadPath)){

@@ -23,7 +23,7 @@ The module in action - A CMS view of a gallery associated with a page.
 
 ## State ##
 
-We've tested the module on various sites both internal and external and are happy with the performance. We're considering it a release candidate at the moment.
+We've tested the module on various sites both internal and external and are happy with the performance. We're considering it a release candidate at the moment. Check the Issues area for known bugs.
 
 If you would like to contribute to the development of this module, please fork it, hack away and then open a pull request.
 
@@ -52,12 +52,31 @@ Previous versions were considered beta with API changes possible. We've changed 
 
 We recommend updating this on your staging site then moving all changes live in a single update.
 
+## File & Directory Permissions ##
+
+The gallery module ships with the following permissions (for *nix):
+<ul>
+<li>File: 0640 - user read/write, group read, other - no permissions</li>
+<li>Directory: 0750 - user read/write/execute, group read/execute, other - no permissions</li>
+</ul>
+
+These permissions should work just fine for most setups.
+
+Some shared server setups require more relaxed permissions. If you have find broken file thumbs, you can configure permissions as follows in your site _config.php file:
+
+```php
+DisplayAnythingGallery::SetPermissions(0644, 0755)
+```
+
+We recommend against allowing world writable permissions, for obvious reasons.
+
 ## TODO ###
 <ul>
 <li>We'd like the edit handler to open in a CMS panel, not a dialog. If you'd like to try and implement this, go for it.</li>
 <li>Translations</li>
 <li>Insert usual Internet Explorer line here. Note: we haven't looked at performance in less than IE9.</li>
 <li>In PHP 5.4+, Transliterator::Create() is being called without a required argument by the SS Core, we have turned this off for now</li>
+<li>If you're a Windows Server user, it would be great if you can chip in and provide some feedback/changes and pull requests. Your name/org will go on the credits.</li>
 </ul>
 
 ## Blame/Praise/Annotate ? ##
