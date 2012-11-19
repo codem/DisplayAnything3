@@ -135,6 +135,18 @@ DisplayAnything.prototype = {
 				}
 			);
 		
+		//reload all items beyond just the list of images
+		jQuery(document).on(
+				'click',
+				'.file-uploader a.reload-all',
+				function(event) {
+					event.preventDefault();
+					if(!_self.in_progress()) {
+						jQuery(this).parents('.file-uploader').find('.qq-upload-list').hide().empty();
+					}
+				}
+		);
+		
 		//delete items
 		jQuery(document).on(
 				'click',
