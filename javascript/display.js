@@ -57,6 +57,15 @@ DisplayAnything.prototype = {
 		//on load, queue everything matching up
 		this.queue_all();
 		var _self = this;
+		//when the cms container changes state...
+		jQuery(document).on(                                                                                                                                                                     
+			'afterstatechange',                                                                                                                                                              
+			'.cms-container',    
+			function(e, data) {
+				_self.queue_all();
+			}
+		);
+		
 		jQuery(document).on(                                                                                                                         
 			'aftersubmitform',                                                                                                                  
 			'#Form_EditForm',
