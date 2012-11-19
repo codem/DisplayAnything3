@@ -57,24 +57,14 @@ DisplayAnything.prototype = {
 		//on load, queue everything matching up
 		this.queue_all();
 		var _self = this;
-		//when the cms container changes state...
-		jQuery(document).on(
-			'afterstatechange',
-			'.cms-container',
+		jQuery(document).on(                                                                                                                         
+			'aftersubmitform',                                                                                                                  
+			'#Form_EditForm',
 			function(e, data) {
-				//..and after a state change in the CMS container
+				//reload all aftersubmit is submitted successfully
 				_self.queue_all();
 			}
 		);
-		//and when the cms edit form completes loading after change
-		jQuery(document).on(
-			'reloadeditform',
-			'.cms-content',
-			function(e, ui) {
-				_self.queue_all();
-			}
-		);
-		
 	},
 	queue_all : function() {
 		var _self = this;
@@ -90,7 +80,6 @@ DisplayAnything.prototype = {
 			}
 		);
 	},
-	
 	//handles behaviour on the viewer
 	viewer : function() {
 		var _self = this;
