@@ -47,6 +47,7 @@ Previous versions were considered beta with API changes possible. We've changed 
 <li>Replace display_anything with the most recent release</li>
 <li>Update the gallery field creation. Look at the examples directory for examples.</li>
 <li>Run /dev/build to rebuild the site manifest</li>
+<li>Run /?flush=1 to rebuild the site template cache</li>
 <li>Browse to your page or dataobject containing the gallery</li>
 </ol>
 
@@ -105,7 +106,8 @@ If you find a bug we'd like to know about it. If you like the module, spread the
 	</dl>
 	<br />In all cases the module source code should be located in a directory called 'display_anything'
 </li>
-<li>run /dev/build (admin privileges required) and possibly a ?flush=1</li>
+<li>run /dev/build (admin privileges required) to rebuild the site manifest</li>
+<li>Run /?flush=1 to rebuild the site template cache</li>
 <li>implement in the CMS - see the 'examples' directory in the source</li>
 <li>log into the CMS and start editing</li>
 </ol>
