@@ -14,7 +14,7 @@ class VideoGalleryPage extends Page {
 
 		//YOUTUBE VIDEO gallery - a simple extension to the default gallery
 		$gallery = new DisplayAnythingGalleryField('VideoGallery','A video gallery',$this->VideoGallery());
-		$fields->addFieldToTab('Root.Content.Videos', $gallery);
+		$fields->addFieldToTab('Root.Videos', $gallery);
 
 		return $fields;
 	}
