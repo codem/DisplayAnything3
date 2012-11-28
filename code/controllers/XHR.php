@@ -26,6 +26,7 @@ class Uploader_XHRSubmission {
 		$this->tmp_handle = fopen($this->tmp_location, "w");
 		stream_copy_to_stream($input, $this->tmp_handle);
 		fclose($input);
+		fclose($this->tmp_handle);
 		return true;
 	}
 	
