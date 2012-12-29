@@ -595,7 +595,7 @@ class DisplayAnythingGallery extends DataObject {
 		
 			//final location of file
 			$targetDirectory = "/" . trim($this->target_location, "/ ");
-			$uploadPath = trim(ASSETS_PATH, "/ ") . $targetDirectory;
+			$uploadPath = rtrim(ASSETS_PATH, "/ ") . $targetDirectory;
 			$uploadDirectory = ASSETS_DIR . $targetDirectory;
 			
 			if(!is_writable(ASSETS_PATH)) {
